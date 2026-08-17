@@ -1,5 +1,3 @@
-const path = require("path");
-const fs = require("fs");
 const express = require("express");
 const multer = require("multer");
 const Product = require("../models/Product");
@@ -9,12 +7,13 @@ const Category = require("../models/Category");
 const DiscountCode = require("../models/DiscountCode");
 const InventoryEvent = require("../models/InventoryEvent");
 const AuditLog = require("../models/AuditLog");
+const ProductImage = require("../models/ProductImage");
 const protect = require("../middleware/authMiddleware");
 const adminOnly = require("../middleware/adminMiddleware");
 const asyncHandler = require("../utils/asyncHandler");
 const AppError = require("../utils/AppError");
 const { writeAudit } = require("../middleware/audit");
-const { productImageUrl } = require("../utils/config");
+const { uploadedImageUrl } = require("../utils/config");
 const InventoryService = require("../services/InventoryService");
 const DiscountService = require("../services/DiscountService");
 const {
@@ -248,25 +247,29 @@ router.post(
     const product = await Product.findById(requireObjectId(req.params.id));
     if (!product) throw new AppError("Product not found.", 404, "NOT_FOUND");
 
-    const extMap = {
-      "image/png": ".png",
-      "image/jpeg": ".jpg",
-      "image/webp": ".webp",
-    };
-    const ext = extMap[req.file.mimetype] || ".png";
-    const slug = product.slug || String(product._id);
-    const dir = path.join(__dirname, "../public/products");
-    fs.mkdirSync(dir, { recursive: true });
-    const filename = `${slug}${ext}`;
-    fs.writeFileSync(path.join(dir, filename), req.file.buffer);
+    // Stored in MongoDB, not on disk: the production API runs as a serverless
+    // function whose filesystem is read-only and discarded between calls.
+    // upsert so re-uploading replaces the current image rather than erroring
+    // against the unique productId index.
+    const saved = await ProductImage.findOneAndUpdate(
+      { productId: product._id },
+      {
+        productId: product._id,
+        contentType: req.file.mimetype,
+        size: req.file.size,
+        data: req.file.buffer,
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
 
-    product.imageUrl = productImageUrl(filename);
+    // Version the URL so browsers and the CDN do not keep serving the old image.
+    product.imageUrl = uploadedImageUrl(product._id, saved.updatedAt.getTime());
     await product.save();
     await writeAudit(req, {
       action: "upload-image",
       entity: "Product",
       entityId: product._id,
-      meta: { filename },
+      meta: { contentType: req.file.mimetype, size: req.file.size },
     });
     res.json({ data: product, message: "Image saved." });
   })

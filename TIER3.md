@@ -54,6 +54,12 @@ For where each item is implemented, see the
 - [x] Strong responsive design
 - [x] Appropriate Next.js client vs server components
 
+## Deployment
+- [x] Hosted on Netlify as a single site (see README > Deploying to Netlify)
+- [x] Express API runs as a Netlify Function; no code rewritten, only an entry point added
+- [x] Uploaded images stored in MongoDB, so they survive a read-only serverless filesystem
+- [x] Secrets supplied through Netlify environment variables, never committed
+
 ## Testing
 - [x] Backend route / validation tests
 - [x] Frontend component or utility tests

@@ -9,7 +9,12 @@
     "seed": "node seed.js",
     "test": "node --test"
   },
-  "keywords": ["ecommerce", "express", "mongodb", "rest-api"],
+  "keywords": [
+    "ecommerce",
+    "express",
+    "mongodb",
+    "rest-api"
+  ],
   "author": "Jeremy Liang",
   "license": "ISC",
   "type": "commonjs",
@@ -21,6 +26,7 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.9.2",
     "multer": "^2.0.2",
+    "serverless-http": "^4.0.0",
     "stripe": "^22.5.0"
   }
 }

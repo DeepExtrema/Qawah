@@ -7,6 +7,9 @@ const AppError = require("../utils/AppError");
 const { writeAudit } = require("../middleware/audit");
 const ProductService = require("../services/ProductService");
 const InventoryService = require("../services/InventoryService");
+const ProductImage = require("../models/ProductImage");
+const { requireObjectId } = require("../utils/validate");
+const { toBuffer } = require("../utils/binary");
 
 const router = express.Router();
 
@@ -119,6 +122,39 @@ router.get(
   asyncHandler(async (req, res) => {
     const recs = await ProductService.recommendations(req.params.id, 4);
     res.json({ data: recs });
+  })
+);
+
+/*
+ * Serves an administrator-uploaded product image.
+ *
+ * This is the one endpoint that does not return the usual { data } envelope:
+ * it responds with raw image bytes, because the URL is used directly as an
+ * <img src>. Seeded images are static files under /products/<slug>.png and do
+ * not pass through here.
+ */
+router.get(
+  "/:id/image",
+  asyncHandler(async (req, res) => {
+    const image = await ProductImage.findOne({
+      productId: requireObjectId(req.params.id),
+    }).lean();
+    if (!image) {
+      throw new AppError("Image not found.", 404, "NOT_FOUND");
+    }
+
+    // .lean() skips document hydration, so a Buffer field comes back as the
+    // driver's BSON Binary wrapper rather than a Node Buffer. Sending that
+    // directly makes Express treat it as a plain object and JSON-encode it,
+    // which silently corrupts the image.
+    const bytes = toBuffer(image.data);
+
+    res.set("Content-Type", image.contentType);
+    res.set("Content-Length", String(bytes.length));
+    // Safe to cache hard: the stored URL carries a ?v= stamp that changes
+    // whenever an administrator replaces the image.
+    res.set("Cache-Control", "public, max-age=31536000, immutable");
+    res.end(bytes);
   })
 );
 

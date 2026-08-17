@@ -16,6 +16,7 @@ implements it in [Tier 3 requirement map](#tier-3-requirement-map) below.
 
 - [Quick start](#quick-start)
 - [Environment variables](#environment-variables)
+- [Deploying to Netlify](#deploying-to-netlify)
 - [Testing](#testing)
 - [Tier 3 requirement map](#tier-3-requirement-map)
 - [Architecture](#architecture)
@@ -111,10 +112,91 @@ All environment reads are centralised in [`backend/utils/config.js`](backend/uti
 
 ---
 
+## Deploying to Netlify
+
+One Netlify site serves the whole application. The Next.js storefront is built
+as usual, and the same Express API runs as a single Netlify Function reached at
+`/api` on the site's own domain.
+
+### What to set up
+
+1. Create a site from this repository. [`netlify.toml`](netlify.toml) supplies the
+   build command, publish directory, function directory, and the `/api/*` rewrite,
+   so nothing needs configuring in the Netlify UI.
+2. Under **Site configuration > Environment variables**, add:
+
+   | Variable | Value |
+   | --- | --- |
+   | `MONGO_URI` | A MongoDB Atlas connection string |
+   | `JWT_SECRET` | A long random string |
+   | `STRIPE_SECRET_KEY` | Optional. Leave unset to use the sandbox gateway |
+
+   `PUBLIC_API_URL` and `CLIENT_ORIGIN` are not needed: they default to the
+   Netlify site URL, which Netlify injects as `URL`.
+
+3. In Atlas, under **Network Access**, allow `0.0.0.0/0`. Serverless functions
+   have no fixed outbound IP address, so an IP allow-list cannot work.
+4. Seed the database once from your machine, pointing at the same Atlas cluster:
+
+   ```bash
+   cd backend && npm run seed
+   ```
+
+### How it fits together
+
+```text
+        browser
+           |
+           |  https://<site>.netlify.app
+           v
+   +-------------------------+
+   |      Netlify site       |
+   |                         |
+   |  /            ---> Next.js storefront and admin console
+   |  /products/*  ---> seeded images, served straight from the CDN
+   |  /api/*       ---> Express API, one function              --> MongoDB Atlas
+   +-------------------------+
+```
+
+Because the API answers on the site's own domain, requests are same-origin:
+there is no CORS boundary, and the frontend needs no configured API URL.
+
+### What changed to make this work
+
+The Express application was not rewritten. Three things were added:
+
+- **[`backend/app.js`](backend/app.js)** builds and exports the app without calling
+  `listen()`. [`backend/server.js`](backend/server.js) still starts a normal Node
+  process for local development, and
+  [`backend/serverless.js`](backend/serverless.js) adapts the identical app for
+  Netlify. Routes, services, and models are untouched.
+- **Connection caching.** A serverless container handles many requests, so the
+  Mongoose connection promise is created once and re-awaited rather than
+  reconnecting per request, which would exhaust the Atlas connection limit.
+- **Uploaded images moved into MongoDB.** See [Image uploads](#image-uploads).
+
+Two details worth knowing:
+
+- A Netlify rewrite changes the URL the function receives, so
+  [`backend/utils/functionPath.js`](backend/utils/functionPath.js) restores the
+  original `/api/...` path before Express routes on it. Getting this wrong makes
+  every route 404 in production while working perfectly in development, so it has
+  its own tests.
+- Functions are stateless and time-limited. Nothing in the app holds state
+  between requests or runs a background timer, so this maps cleanly.
+
+### Running the Netlify build locally
+
+```bash
+npx netlify dev
+```
+
+---
+
 ## Testing
 
 ```bash
-cd backend  && npm test    # 21 tests
+cd backend  && npm test    # 35 tests
 cd frontend && npm test    #  7 tests
 ```
 
@@ -138,6 +220,8 @@ run on a clean clone with **no database and no network**. Test files are discove
 | ″ | A cancelled order cannot be charged. | Cancelled orders are terminal. |
 | ″ | Calling the Stripe path with no key returns a clean `503`, not a crash. | An unconfigured optional integration must degrade, not take down the server. |
 | [`backend/tests/validate.test.js`](backend/tests/validate.test.js) | Emails and discount codes are normalised; ratings outside 1–5 are rejected; object IDs and slugs are validated. | Validation is the boundary between untrusted input and the database. |
+| [`backend/tests/functionPath.test.js`](backend/tests/functionPath.test.js) | A Netlify rewrite path such as `/.netlify/functions/api/products` is translated back to `/api/products`, from `rawUrl` when present and by stripping the prefix otherwise. | If this is wrong, every API route 404s in production while working perfectly in local development. That is an expensive failure to discover after deploying. |
+| [`backend/tests/binary.test.js`](backend/tests/binary.test.js) | `toBuffer` converts a BSON Binary into a Node Buffer with identical bytes, and never returns a plain object. | Regression cover for a real bug: a `.lean()` query returns an image as a Binary wrapper, which Express JSON-encodes, corrupting it while still returning a healthy-looking 200. |
 | [`frontend/lib/lowStock.test.mjs`](frontend/lib/lowStock.test.mjs) | `isLowStock` flags 1–8 only; 0 (sold out) and 9+ are excluded; missing/unparseable values never warn. | Off-by-one errors here show a false "almost gone" badge and mislead customers. |
 | ″ | `lowStockLabel` uses singular copy for one bag and returns `null` when no badge should render. | Returning `null` lets the component skip the element entirely instead of rendering an empty node. |
 
@@ -177,7 +261,7 @@ Every requirement, and the file that implements it.
 | Category management | `/api/admin/categories` (CRUD) | [`app/admin/categories/page.js`](frontend/app/admin/categories/page.js) |
 | Customer management | `GET /api/admin/customers` | [`app/admin/customers/page.js`](frontend/app/admin/customers/page.js) |
 | Discount-code management | `/api/admin/discounts` (CRUD) | [`app/admin/discounts/page.js`](frontend/app/admin/discounts/page.js) |
-| Product-image management | `POST /api/admin/products/:id/image` | [`app/admin/products/page.js`](frontend/app/admin/products/page.js) |
+| Product-image management | `POST /api/admin/products/:id/image`, stored in [`models/ProductImage.js`](backend/models/ProductImage.js) | [`app/admin/products/page.js`](frontend/app/admin/products/page.js) |
 | Bulk product updates | `POST /api/admin/products/bulk` | [`app/admin/inventory/page.js`](frontend/app/admin/inventory/page.js) |
 | Inventory history | [`services/InventoryService.js`](backend/services/InventoryService.js), [`models/InventoryEvent.js`](backend/models/InventoryEvent.js) | [`app/admin/inventory/page.js`](frontend/app/admin/inventory/page.js) |
 | Audit log | [`middleware/audit.js`](backend/middleware/audit.js), [`models/AuditLog.js`](backend/models/AuditLog.js) | [`app/admin/audit/page.js`](frontend/app/admin/audit/page.js) |
@@ -202,7 +286,7 @@ Every requirement, and the file that implements it.
 | Reusable backend logic | [`utils/validate.js`](backend/utils/validate.js), [`utils/asyncHandler.js`](backend/utils/asyncHandler.js), [`utils/config.js`](backend/utils/config.js) |
 | Centralised error handling | [`middleware/errorHandler.js`](backend/middleware/errorHandler.js): one handler; 5xx details are logged, never leaked to the client |
 | Data validation | [`utils/validate.js`](backend/utils/validate.js), applied at every route boundary |
-| Secure environment variables | [`utils/config.js`](backend/utils/config.js) + fail-fast startup check |
+| Secure environment variables | [`utils/config.js`](backend/utils/config.js) + fail-fast startup check; deployment values come from Netlify site settings, never from a committed file |
 | Consistent API responses | Every endpoint returns `{ data }` on success and `{ error: { message, code } }` on failure |
 | Thoughtful database design | Order line items embedded (immutable at purchase time); everything else referenced |
 | Optimised queries | Compound indexes on `Review`, `WishlistItem`, `RecentlyViewed`, `SavedCart`, `AuditLog`; `.lean()` on read-only paths; aggregation for stats |
@@ -254,7 +338,15 @@ and, critically, replaces 5xx messages with a generic string so internal details
 
 ```text
 Qawah/
+├── netlify.toml                    # build, function, and /api/* rewrite config
+├── netlify/
+│   └── functions/
+│       └── api.js                  # re-exports backend/serverless.js
+│
 ├── backend/
+│   ├── app.js                      # builds and exports the Express app, no listen()
+│   ├── server.js                   # local dev entry: connect, then listen
+│   ├── serverless.js               # the same app adapted for Netlify Functions
 │   ├── middleware/
 │   │   ├── adminMiddleware.js      # admin-only guard
 │   │   ├── audit.js                # writes AuditLog entries
@@ -274,12 +366,13 @@ Qawah/
 │   ├── utils/
 │   │   ├── AppError.js             # error + HTTP status + machine-readable code
 │   │   ├── asyncHandler.js         # forwards async errors to the handler
+│   │   ├── binary.js               # BSON Binary to Buffer, for served images
 │   │   ├── config.js               # every process.env read lives here
+│   │   ├── functionPath.js         # Netlify rewrite path to Express path
 │   │   └── validate.js             # shared validators
-│   ├── public/products/            # uploaded and seeded product images
+│   ├── public/products/            # seeded product images (local development)
 │   ├── .env.example                # template, copy to .env
-│   ├── seed.js                     # catalogue + demo accounts
-│   └── server.js                   # app wiring, fail-fast config check
+│   └── seed.js                     # catalogue + demo accounts
 │
 ├── frontend/
 │   ├── app/
@@ -329,6 +422,7 @@ Auth legend: **Public** = no authentication needed · **A** = authenticated · *
 | `GET` | `/:id` | Public | Product detail |
 | `GET` | `/:id/reviews` | Public | Reviews for a product |
 | `GET` | `/:id/recommendations` | Public | Related products |
+| `GET` | `/:id/image` | Public | Raw bytes of an uploaded image. The one endpoint that does not return a `{ data }` envelope, because the URL is used directly as an `<img src>` |
 | `POST` | `/` | ADM | Create |
 | `PUT` | `/:id` | ADM | Update |
 | `DELETE` | `/:id` | ADM | Delete |
@@ -384,7 +478,7 @@ Auth legend: **Public** = no authentication needed · **A** = authenticated · *
 
 ## Data model
 
-Twelve collections. Order line items are **embedded**; everything else is **referenced**.
+Thirteen collections. Order line items are **embedded**; everything else is **referenced**.
 
 | Model | Key fields | Notes |
 | --- | --- | --- |
@@ -400,6 +494,7 @@ Twelve collections. Order line items are **embedded**; everything else is **refe
 | `Category` | `name`, `slug` (unique) | |
 | `InventoryEvent` | `productId`, `delta`, `reason`, `orderId`, `userId` | Append-only history. |
 | `AuditLog` | `actorId`, `action`, `entity`, `entityId`, `meta` | Append-only; indexed on `createdAt` and `(entity, entityId)`. |
+| `ProductImage` | `productId` (unique), `contentType`, `size`, `data` | Bytes of an administrator-uploaded image. Unique on `productId`, so a re-upload replaces rather than duplicates. |
 
 **Why order items are embedded.** A line item is a record of what was bought at the price paid.
 Referencing the live product would rewrite order history every time a price changed. Embedding
@@ -453,11 +548,29 @@ burn a limited-use code.
 - **Size restriction:** 5 MB, enforced by multer's `limits`.
 - **Useful errors:** an oversized file returns `FILE_TOO_LARGE` with *"Image must be 5 MB or
   smaller."*; a wrong type returns `INVALID_IMAGE`; no file at all returns `NO_FILE`.
-- **Stored as a URL:** the file is written to `backend/public/products/<slug>.<ext>` and the
-  product's `imageUrl` is built from `PUBLIC_API_URL`, so the stored URL follows the deployment
-  rather than pointing at `localhost`.
-- **No credentials exposed:** files are served by the app's own static middleware, so no storage
-  keys exist to leak.
+- **Stored as a URL:** the product's `imageUrl` is built from `PUBLIC_API_URL`, so the stored URL
+  follows the deployment rather than pointing at `localhost`.
+- **No credentials exposed:** images are served by the application itself, so there are no storage
+  keys to leak.
+
+### Where the bytes live
+
+Uploads are stored in MongoDB as a [`ProductImage`](backend/models/ProductImage.js) document and
+served back by `GET /api/products/:id/image`.
+
+Writing to disk would have been simpler, and that is what an earlier version did. It cannot work
+once deployed: the production API runs as a serverless function whose filesystem is read-only and
+discarded between invocations, so an uploaded file would vanish. Putting the bytes in MongoDB
+keeps the feature working identically in development and production, with no third-party storage
+account and no extra credentials to configure. A 5 MB cap sits comfortably inside MongoDB's 16 MB
+document limit.
+
+The stored URL carries a `?v=` timestamp that changes on every upload, so the response can be
+cached aggressively while a replaced image still appears immediately.
+
+The 18 seeded catalogue images are ordinary files committed under
+`frontend/public/products/`, so on Netlify they are served straight from the CDN and never touch
+the function at all.
 
 ---
 
@@ -500,7 +613,7 @@ burn a limited-use code.
 
 | Story | How it is satisfied |
 | --- | --- |
-| I can test important application behaviour | 28 tests over pricing, discounts, cancellation, payments, and validation, with no database required. |
+| I can test important application behaviour | 42 tests over pricing, discounts, cancellation rules, payment outcomes, validation, and the serverless deployment seam, with no database required. |
 | I can identify errors through clear logs | One error handler logs `METHOD /path` plus a stack trace; every client error carries a machine-readable `code`. |
 | I can understand the project's folder structure | Routes / services / models / middleware / utils, one responsibility each. See [Project structure](#project-structure). |
 | I can safely configure the project using environment variables | `.env.example` templates, all reads centralised in `config.js`, and a fail-fast startup check. |

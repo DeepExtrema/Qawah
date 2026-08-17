@@ -1,7 +1,22 @@
-// Single source of truth for the API origin.
-// NEXT_PUBLIC_* is inlined at build time, so this works in client components.
-// The localhost fallback keeps `npm run dev` zero-config for a fresh clone.
-export const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+/*
+ * Single source of truth for the API origin.
+ *
+ * NEXT_PUBLIC_* is inlined at build time, so this works in client components.
+ *
+ * The default depends on where the app is running:
+ *   production  ""  -> same origin. On Netlify the Express API is proxied at
+ *                      /api on this very domain, so a relative fetch is
+ *                      correct and there is no CORS boundary to cross.
+ *   development     -> the separate Express process on port 5001, which keeps
+ *                      `npm run dev` zero-config for a fresh clone.
+ *
+ * Setting NEXT_PUBLIC_API_URL overrides both, for the case where the API is
+ * deployed somewhere else entirely.
+ */
+const DEFAULT_API =
+  process.env.NODE_ENV === "production" ? "" : "http://localhost:5001";
+
+export const API = process.env.NEXT_PUBLIC_API_URL || DEFAULT_API;
 
 export function getSessionId() {
   if (typeof window === "undefined") return "";

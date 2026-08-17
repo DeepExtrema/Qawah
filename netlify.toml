@@ -1,0 +1,40 @@
+# Netlify build configuration for QAHWA SUPPLY.
+#
+# One site serves both halves of the application:
+#   - the Next.js storefront and admin console, built from frontend/
+#   - the Express API, bundled as a single function from backend/ and reached
+#     at /api/* on the same origin
+#
+# Required environment variables (Site configuration > Environment variables):
+#   MONGO_URI     MongoDB Atlas connection string
+#   JWT_SECRET    long random string used to sign tokens
+# Optional:
+#   STRIPE_SECRET_KEY   a Stripe test key; blank uses the sandbox gateway
+
+[build]
+  # No `base` is set, so the build runs from the repository root and can install
+  # both workspaces. Installing backend dependencies is what lets the function
+  # bundler resolve express, mongoose, and the rest.
+  command = "npm install --prefix backend && npm install --prefix frontend && npm run build --prefix frontend"
+  publish = "frontend/.next"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# The Next.js runtime turns the built app into the site's pages and its own
+# server-rendering functions.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+# Send every API call to the Express function. `force` is required so this wins
+# over Next.js's own routing for the /api prefix. The function restores the
+# original /api/... path before handing the request to Express.
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true

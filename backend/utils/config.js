@@ -8,26 +8,62 @@
 
 const PORT = Number(process.env.PORT) || 5001;
 
+// Environment variables the application cannot start without.
+const REQUIRED_ENV = ["MONGO_URI", "JWT_SECRET"];
+
 function trimSlash(value) {
   return String(value || "").replace(/\/+$/, "");
 }
 
-// Origin the browser uses to reach this API. Product images are served from
-// here, so the stored imageUrl must point at the deployed host, not localhost.
-const PUBLIC_API_URL =
-  trimSlash(process.env.PUBLIC_API_URL) || `http://localhost:${PORT}`;
+/*
+ * Netlify injects the deployed site's address as URL, and the unique
+ * per-deploy address as DEPLOY_PRIME_URL. Using them as the fallback means a
+ * Netlify deployment works with no manually configured origin at all, while an
+ * explicitly set variable still wins.
+ */
+const NETLIFY_SITE_URL = trimSlash(
+  process.env.PUBLIC_API_URL ||
+    process.env.URL ||
+    process.env.DEPLOY_PRIME_URL
+);
 
-// Origin allowed through CORS (the Next.js app).
+// Origin the browser uses to reach this API. On Netlify the API is proxied
+// under /api on the site's own domain, so this is the site itself. Uploaded
+// and seeded image URLs are built from it, which is why it must not stay
+// pointing at localhost once deployed.
+const PUBLIC_API_URL = NETLIFY_SITE_URL || `http://localhost:${PORT}`;
+
+// Origin allowed through CORS (the Next.js app). Same-origin requests on
+// Netlify carry no Origin header and bypass CORS entirely; this matters for
+// local development, where the frontend and API sit on different ports.
 const CLIENT_ORIGIN =
-  trimSlash(process.env.CLIENT_ORIGIN) || "http://localhost:3000";
+  trimSlash(process.env.CLIENT_ORIGIN) ||
+  NETLIFY_SITE_URL ||
+  "http://localhost:3000";
 
+/**
+ * Absolute URL for a seeded product image file.
+ * These files ship in the repository and are served by the CDN on Netlify.
+ */
 function productImageUrl(filename) {
   return `${PUBLIC_API_URL}/products/${filename}`;
 }
 
+/**
+ * Absolute URL for an image an administrator uploaded.
+ * Uploads live in MongoDB rather than on disk, so they are served back through
+ * the API. The version suffix busts any cached copy when an image is replaced.
+ */
+function uploadedImageUrl(productId, version) {
+  const suffix = version ? `?v=${version}` : "";
+  return `${PUBLIC_API_URL}/api/products/${productId}/image${suffix}`;
+}
+
 module.exports = {
   PORT,
+  REQUIRED_ENV,
   PUBLIC_API_URL,
   CLIENT_ORIGIN,
   productImageUrl,
+  uploadedImageUrl,
 };
