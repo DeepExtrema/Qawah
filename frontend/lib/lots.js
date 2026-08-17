@@ -33,7 +33,7 @@ export function subscribePrice(price) {
   return Math.round(price * 0.85 * 100) / 100;
 }
 
-export const LOTS = [
+const LOT_DEFS = [
   {
     _id: "lot-haraaz-red",
     slug: "haraaz-red",
@@ -696,6 +696,22 @@ export const LOTS = [
     placeholder: "img",
   },
 ];
+
+/*
+ * Attach each lot's catalogue image, which ships in frontend/public/products
+ * named after the lot's slug. Applied here rather than repeated on all 18
+ * objects, so the two can never drift apart.
+ *
+ * This matters beyond tidiness: mergeWithApi falls back to these definitions
+ * when the API is unreachable, and takes `hit.imageUrl || lot.imageUrl`.
+ * Without an imageUrl here, an API outage turned every product card into a
+ * grey placeholder rather than degrading to the real photo with mock pricing.
+ */
+export const LOTS = LOT_DEFS.map((lot) => ({
+  ...lot,
+  imageUrl: lot.imageUrl || (lot.slug ? `/products/${lot.slug}.png` : ""),
+}));
+
 
 export function getLot(id) {
   return LOTS.find((lot) => lot._id === id || lot.slug === id);
