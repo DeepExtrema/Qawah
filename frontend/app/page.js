@@ -1,150 +1,171 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import AuthStatus from "../components/AuthStatus";
+import Placeholder from "../components/Placeholder";
+import ProductImage from "../components/ProductImage";
+import AddToCartButton from "../components/AddToCartButton";
+import WishlistButton from "../components/WishlistButton";
+import LowStockBadge from "../components/LowStockBadge";
+import RecentlyViewed from "../components/RecentlyViewed";
+import { useCart } from "../context/CartContext";
+import { apiFetch } from "../lib/api";
+import {
+  HOME_ROAST,
+  LOTS,
+  ORDER_AGAIN,
+  getLot,
+  inStockLots,
+  mergeWithApi,
+  money,
+} from "../lib/lots";
 
 export default function Home() {
-  const [products, setProducts] = useState([]);
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("All");
-  const [sort, setSort] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
+  const { addToCart } = useCart();
+  const [catalog, setCatalog] = useState(LOTS);
 
   useEffect(() => {
-    async function loadProducts() {
+    let cancelled = false;
+
+    async function load() {
       try {
-        const response = await fetch("http://localhost:5001/api/products");
-        const data = await response.json();
-
-        if (!response.ok) {
-          setMessage("Unable to load products.");
-          return;
-        }
-
-        setProducts(data);
-      } catch (error) {
-        setMessage("Unable to connect to the server.");
-      } finally {
-        setLoading(false);
+        const { response, data } = await apiFetch("/api/products");
+        if (!response.ok) return;
+        if (!cancelled) setCatalog(mergeWithApi(data));
+      } catch {
+        /* mock LOTS stay in place */
       }
     }
 
-    loadProducts();
+    load();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const categories = [
-    "All",
-    ...new Set(products.map((product) => product.category)),
-  ];
+  const byId = useMemo(() => {
+    const map = {};
+    catalog.forEach((lot) => {
+      map[lot._id] = lot;
+      map[lot.slug] = lot;
+      if (lot.mockId) map[lot.mockId] = lot;
+    });
+    return map;
+  }, [catalog]);
 
-  let filteredProducts = products.filter((product) => {
-    const matchesSearch = product.name
-      .toLowerCase()
-      .includes(search.toLowerCase());
-
-    const matchesCategory =
-      category === "All" || product.category === category;
-
-    return matchesSearch && matchesCategory;
-  });
-
-  if (sort === "low-high") {
-    filteredProducts = [...filteredProducts].sort(
-      (a, b) => a.price - b.price
+  function resolveLot(id) {
+    const mock = getLot(id);
+    return (
+      byId[id] ||
+      (mock && (byId[mock.slug] || byId[mock._id])) ||
+      mock
     );
   }
 
-  if (sort === "high-low") {
-    filteredProducts = [...filteredProducts].sort(
-      (a, b) => b.price - a.price
-    );
-  }
+  const featured = HOME_ROAST.map(resolveLot).filter(Boolean);
+
+  const stockCount = inStockLots().length;
 
   return (
-    <main>
-      <h1>QAHWA SUPPLY</h1>
-
-      <AuthStatus />
-
-      <nav className="page-nav">
-        <Link href="/cart">View Cart</Link>
-        <Link href="/orders">Order History</Link>
-      </nav>
-
-      <h2>Our Coffee</h2>
-
-      <section className="filters">
-        <div className="filter-group">
-          <label htmlFor="search">Search Products</label>
-          <input
-            id="search"
-            type="text"
-            placeholder="Search coffee..."
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-        </div>
-
-        <div className="filter-group">
-          <label htmlFor="category">Category</label>
-          <select
-            id="category"
-            value={category}
-            onChange={(event) => setCategory(event.target.value)}
-          >
-            {categories.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="filter-group">
-          <label htmlFor="sort">Sort by Price</label>
-          <select
-            id="sort"
-            value={sort}
-            onChange={(event) => setSort(event.target.value)}
-          >
-            <option value="">Default</option>
-            <option value="low-high">Price: Low to High</option>
-            <option value="high-low">Price: High to Low</option>
-          </select>
-        </div>
-      </section>
-
-      {loading && <p>Loading products...</p>}
-      {message && <p>{message}</p>}
-
-      {!loading && !message && filteredProducts.length === 0 && (
-        <p>No products found.</p>
-      )}
-
-      <section className="product-grid">
-        {filteredProducts.map((product) => (
-          <div key={product._id} className="product-card">
-            <h3>
-              <Link href={`/products/${product._id}`}>
-                {product.name}
-              </Link>
-            </h3>
-
-            <p>{product.description}</p>
-            <p>Category: {product.category}</p>
-            <p>Price: ${product.price}</p>
-            <p>Inventory: {product.inventory}</p>
-
-            {product.inventory > 0 ? (
-              <p>In Stock</p>
-            ) : (
-              <p>Sold Out</p>
-            )}
+    <main className="page">
+      <div className="shell">
+        <section className="intro">
+          <div>
+            <h1>Yemeni-lineage coffee, roasted weekly</h1>
+            <div className="cp">
+              {stockCount} LOTS IN STOCK · ORIGIN DATA ON EVERY LABEL
+            </div>
           </div>
-        ))}
-      </section>
+          <div className="intro-actions">
+            <Link href="/coffee" className="bt bp">
+              Shop all
+            </Link>
+            <Link href="/wholesale" className="bt">
+              Wholesale pricing
+            </Link>
+          </div>
+        </section>
+
+        <section className="section-pad">
+          <div className="section-head">
+            <h2>Shop by roast</h2>
+            <span className="cp" style={{ marginLeft: "auto" }}>
+              {stockCount} RESULTS
+            </span>
+          </div>
+          <div className="grid-4">
+            {featured.map((lot) => (
+              <article key={lot._id} className="b lot-card">
+                <WishlistButton product={lot} className="wish-abs" />
+                <Link href={`/products/${lot._id}`}>
+                  <ProductImage src={lot.imageUrl} alt={lot.name} label="bag" height={104} />
+                  <div className="name">{lot.name}</div>
+                  <div className="cp">{lot.homeTag}</div>
+                </Link>
+                <LowStockBadge inventory={lot.inventory} />
+                <div className="row">
+                  <span>{money(lot.price)}</span>
+                  <AddToCartButton product={lot} />
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <div className="shell">
+        <div className="promo-row">
+          <div className="promo">
+            <Placeholder label="img" width={88} height={70} />
+            <div className="promo-copy">
+              <div>Subscribe · from $17.85</div>
+              <div className="cp">SET GRIND + CADENCE, SKIP ANY WEEK</div>
+            </div>
+            <Link href="/subscribe" className="bt bp" style={{ padding: "5px 12px" }}>
+              Build
+            </Link>
+          </div>
+          <div className="promo">
+            <Placeholder label="img" width={88} height={70} />
+            <div className="promo-copy">
+              <div>Cafés, masjids, offices</div>
+              <div className="cp">5 KG TIERS · NET-30 · TRAINING INCLUDED</div>
+            </div>
+            <Link href="/wholesale" className="bt" style={{ padding: "5px 12px" }}>
+              Enquire
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <div className="shell section-pad">
+        <div className="cp">ORDER AGAIN</div>
+        <div className="reorder-row">
+          {ORDER_AGAIN.map((row) => {
+            const lot = resolveLot(row.id);
+            if (!lot) return null;
+            return (
+              <button
+                key={row.id}
+                type="button"
+                className="b reorder"
+                onClick={() => addToCart(lot)}
+              >
+                <ProductImage src={lot.imageUrl} alt={lot.name} label="" width={38} height={38} />
+                <div style={{ flex: 1, fontSize: 13.5, textAlign: "left" }}>
+                  {row.label}
+                  <div className="cp">LAST: {row.last}</div>
+                </div>
+                <span className="reorder-plus">+</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="shell">
+        <RecentlyViewed />
+      </div>
     </main>
   );
 }

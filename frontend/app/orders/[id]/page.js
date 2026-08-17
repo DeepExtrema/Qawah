@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useAuth } from "../../../context/AuthContext";
+import { apiError, apiFetch } from "../../../lib/api";
 
 export default function OrderDetailsPage() {
   const { user, loaded } = useAuth();
@@ -22,25 +23,14 @@ export default function OrderDetailsPage() {
 
     async function loadOrder() {
       try {
-        const token = localStorage.getItem("token");
-
-        const response = await fetch(
-          `http://localhost:5001/api/orders/${params.id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const data = await response.json();
+        const { response, data } = await apiFetch(`/api/orders/${params.id}`);
 
         if (!response.ok) {
-          setMessage(data.message || "Unable to load order.");
+          setMessage(apiError(data, "Unable to load order."));
           return;
         }
 
-        setOrder(data);
+        setOrder(data.data);
         setMessage("");
       } catch (error) {
         setMessage("Unable to connect to the server.");

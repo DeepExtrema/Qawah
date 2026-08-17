@@ -2,12 +2,23 @@
 
 import { useCart } from "../context/CartContext";
 
-export default function AddToCartButton({ product }) {
+export default function AddToCartButton({
+  product,
+  label = "Add",
+  className = "bt bt-sm",
+  disabled = false,
+}) {
   const { addToCart } = useCart();
+  const isDisabled = disabled || !product || product.soldOut;
 
   return (
-    <button onClick={() => addToCart(product)}>
-      Add to Cart
+    <button
+      type="button"
+      className={className}
+      disabled={isDisabled}
+      onClick={() => addToCart(product)}
+    >
+      {product?.soldOut ? "Notify" : label}
     </button>
   );
 }

@@ -4,55 +4,36 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
+import { apiError, apiFetch } from "../../lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
-
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-  });
-
+  const [form, setForm] = useState({ email: "", password: "" });
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   function handleChange(event) {
-    setForm({
-      ...form,
-      [event.target.name]: event.target.value,
-    });
+    setForm({ ...form, [event.target.name]: event.target.value });
   }
 
   async function handleSubmit(event) {
     event.preventDefault();
-
     setLoading(true);
     setMessage("");
 
     try {
-      const response = await fetch(
-        "http://localhost:5001/api/auth/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(form),
-        }
-      );
-
-      const data = await response.json();
-
+      const { response, data } = await apiFetch("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify(form),
+      });
       if (!response.ok) {
-        setMessage(data.message || "Login failed.");
+        setMessage(apiError(data, "Login failed."));
         return;
       }
-
       login(data.user, data.token);
-
-      router.push("/");
-    } catch (error) {
+      router.push("/account");
+    } catch {
       setMessage("Unable to connect to the server.");
     } finally {
       setLoading(false);
@@ -60,44 +41,53 @@ export default function LoginPage() {
   }
 
   return (
-    <main>
-      <h1>Login</h1>
+    <main className="page">
+      <div className="shell">
+        <form className="b form-card" onSubmit={handleSubmit}>
+          <h1>Trade login</h1>
+          <p className="cp" style={{ marginTop: 4 }}>
+            CAFÉS · MASJIDS · SUBSCRIBERS
+          </p>
 
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="email">Email</label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            value={form.email}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        <div>
-          <label htmlFor="password">Password</label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            value={form.password}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        <button type="submit" disabled={loading}>
-          {loading ? "Logging In..." : "Login"}
-        </button>
-      </form>
-
-      {message && <p>{message}</p>}
-
-      <p>
-        Don't have an account? <Link href="/register">Register</Link>
-      </p>
+          <div className="form-row">
+            <label className="cp" htmlFor="email">
+              EMAIL
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              className="input"
+              value={form.email}
+              onChange={handleChange}
+              required
+              autoComplete="email"
+            />
+          </div>
+          <div className="form-row">
+            <label className="cp" htmlFor="password">
+              PASSWORD
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              className="input"
+              value={form.password}
+              onChange={handleChange}
+              required
+              autoComplete="current-password"
+            />
+          </div>
+          <button type="submit" className="bt bp" style={{ marginTop: 16 }} disabled={loading}>
+            {loading ? "Logging in…" : "Log in"}
+          </button>
+          {message ? <p className="msg">{message}</p> : null}
+          <p style={{ marginTop: 14, fontSize: 13.5 }}>
+            No account? <Link href="/register">Register</Link>
+          </p>
+        </form>
+      </div>
     </main>
   );
 }

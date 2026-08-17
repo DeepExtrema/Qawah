@@ -2,144 +2,188 @@ const express = require("express");
 const Product = require("../models/Product");
 const protect = require("../middleware/authMiddleware");
 const adminOnly = require("../middleware/adminMiddleware");
+const asyncHandler = require("../utils/asyncHandler");
+const AppError = require("../utils/AppError");
+const { writeAudit } = require("../middleware/audit");
+const ProductService = require("../services/ProductService");
+const InventoryService = require("../services/InventoryService");
 
 const router = express.Router();
 
-router.get("/", async (req, res) => {
-  try {
-    const products = await Product.find();
+const PRODUCT_FIELDS = [
+  "name",
+  "description",
+  "price",
+  "category",
+  "imageUrl",
+  "images",
+  "inventory",
+  "slug",
+  "roast",
+  "origin",
+  "process",
+  "altitude",
+  "altitudeM",
+  "caffeine",
+  "varietal",
+  "agtron",
+  "harvest",
+  "density",
+  "notes",
+  "score",
+  "roastDate",
+  "soldOut",
+  "tradeTier",
+  "grindDefault",
+  "recipes",
+  "lotLine",
+  "processDetail",
+  "agtronLabel",
+  "cardMeta",
+  "cardMeta2",
+  "homeTag",
+  "displayName",
+  "sizeLabel",
+];
 
-    res.status(200).json(products);
-  } catch (error) {
-    res.status(500).json({
-      message: "Unable to retrieve products",
-    });
+function pickProductFields(body) {
+  const data = {};
+  for (const field of PRODUCT_FIELDS) {
+    if (body[field] !== undefined) {
+      data[field] = body[field];
+    }
   }
-});
+  return data;
+}
 
-router.post("/", protect, adminOnly, async (req, res) => {
-  try {
-    const {
-      name,
-      description,
-      price,
-      category,
-      imageUrl,
-      inventory,
-    } = req.body;
+router.get(
+  "/",
+  asyncHandler(async (req, res) => {
+    const products = await Product.find();
+    res.status(200).json(products);
+  })
+);
 
-    if (!name || !description || price === undefined || !category) {
-      return res.status(400).json({
-        message: "Please complete all required product fields.",
-      });
+router.post(
+  "/",
+  protect,
+  adminOnly,
+  asyncHandler(async (req, res) => {
+    const data = pickProductFields(req.body);
+
+    if (!data.name || !data.description || data.price === undefined || !data.category) {
+      throw new AppError("Please complete all required product fields.", 400, "VALIDATION");
     }
 
-    const product = await Product.create({
-      name,
-      description,
-      price,
-      category,
-      imageUrl: imageUrl || "",
-      inventory: inventory || 0,
+    if (data.imageUrl === undefined) data.imageUrl = "";
+    if (data.inventory === undefined) data.inventory = 0;
+    data.soldOut = data.inventory <= 0;
+
+    const product = await Product.create(data);
+    if (product.inventory > 0) {
+      await InventoryService.applyDelta(product._id, 0, {
+        reason: "admin",
+        userId: req.user.userId,
+      }).catch(() => {});
+    }
+    await writeAudit(req, {
+      action: "create",
+      entity: "Product",
+      entityId: product._id,
+      meta: { name: product.name },
     });
 
     res.status(201).json({
       message: "Product created successfully.",
       product,
     });
-  } catch (error) {
-    console.error(error);
+  })
+);
 
-    res.status(500).json({
-      message: "Unable to create product.",
-    });
-  }
-});
-
-router.put("/:id", protect, adminOnly, async (req, res) => {
-  try {
-    const {
-      name,
-      description,
-      price,
-      category,
-      imageUrl,
-      inventory,
-    } = req.body;
-
-    const product = await Product.findByIdAndUpdate(
-      req.params.id,
-      {
-        name,
-        description,
-        price,
-        category,
-        imageUrl,
-        inventory,
+router.get(
+  "/:id/reviews",
+  asyncHandler(async (req, res) => {
+    const summary = await ProductService.reviewSummary(req.params.id);
+    res.json({
+      data: {
+        reviews: summary.reviews,
+        average: summary.average,
+        count: summary.count,
       },
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
+    });
+  })
+);
 
+router.get(
+  "/:id/recommendations",
+  asyncHandler(async (req, res) => {
+    const recs = await ProductService.recommendations(req.params.id, 4);
+    res.json({ data: recs });
+  })
+);
+
+router.get(
+  "/:id",
+  asyncHandler(async (req, res) => {
+    const product = await ProductService.findByIdOrSlug(req.params.id);
     if (!product) {
-      return res.status(404).json({
-        message: "Product not found.",
-      });
+      throw new AppError("Product not found", 404, "NOT_FOUND");
     }
+    res.status(200).json(product);
+  })
+);
+
+router.put(
+  "/:id",
+  protect,
+  adminOnly,
+  asyncHandler(async (req, res) => {
+    const data = pickProductFields(req.body);
+    const existing = await Product.findById(req.params.id);
+    if (!existing) throw new AppError("Product not found.", 404, "NOT_FOUND");
+
+    if (data.inventory !== undefined && data.inventory !== existing.inventory) {
+      await InventoryService.setInventory(existing._id, data.inventory, {
+        userId: req.user.userId,
+      });
+      delete data.inventory;
+    }
+
+    Object.assign(existing, data);
+    if (typeof existing.inventory === "number") {
+      existing.soldOut = existing.inventory <= 0;
+    }
+    const product = await existing.save();
+    await writeAudit(req, {
+      action: "update",
+      entity: "Product",
+      entityId: product._id,
+    });
 
     res.status(200).json({
       message: "Product updated successfully.",
       product,
     });
-  } catch (error) {
-    console.error(error);
+  })
+);
 
-    res.status(500).json({
-      message: "Unable to update product.",
-    });
-  }
-});
-
-router.delete("/:id", protect, adminOnly, async (req, res) => {
-  try {
+router.delete(
+  "/:id",
+  protect,
+  adminOnly,
+  asyncHandler(async (req, res) => {
     const product = await Product.findByIdAndDelete(req.params.id);
-
-    if (!product) {
-      return res.status(404).json({
-        message: "Product not found.",
-      });
-    }
-
+    if (!product) throw new AppError("Product not found.", 404, "NOT_FOUND");
+    await writeAudit(req, {
+      action: "delete",
+      entity: "Product",
+      entityId: product._id,
+      meta: { name: product.name },
+    });
     res.status(200).json({
       message: "Product deleted successfully.",
     });
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      message: "Unable to delete product.",
-    });
-  }
-});
+  })
+);
 
 module.exports = router;
-
-router.get("/:id", async (req, res) => {
-  try {
-    const product = await Product.findById(req.params.id);
-
-    if (!product) {
-      return res.status(404).json({
-        message: "Product not found",
-      });
-    }
-
-    res.status(200).json(product);
-  } catch (error) {
-    res.status(400).json({
-      message: "Invalid product ID",
-    });
-  }
-});

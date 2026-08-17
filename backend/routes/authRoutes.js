@@ -6,6 +6,28 @@ const protect = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
+function signToken(user) {
+  return jwt.sign(
+    {
+      userId: user._id,
+      role: user.role,
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "1d",
+    }
+  );
+}
+
+function publicUser(user) {
+  return {
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  };
+}
+
 router.post("/register", async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -40,14 +62,12 @@ router.post("/register", async (req, res) => {
       password: hashedPassword,
     });
 
+    const token = signToken(user);
+
     res.status(201).json({
       message: "Account created successfully.",
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
+      token,
+      user: publicUser(user),
     });
   } catch (error) {
     console.error(error);
@@ -89,26 +109,12 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    const token = jwt.sign(
-      {
-        userId: user._id,
-        role: user.role,
-      },
-      process.env.JWT_SECRET,
-      {
-        expiresIn: "1d",
-      }
-    );
+    const token = signToken(user);
 
     res.status(200).json({
       message: "Login successful.",
       token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
+      user: publicUser(user),
     });
   } catch (error) {
     console.error(error);

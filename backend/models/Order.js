@@ -20,6 +20,14 @@ const orderItemSchema = new mongoose.Schema(
       required: true,
       min: 1,
     },
+    grind: {
+      type: String,
+      default: "",
+    },
+    size: {
+      type: String,
+      default: "",
+    },
   },
   { _id: false }
 );
@@ -29,9 +37,9 @@ const orderSchema = new mongoose.Schema(
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      default: null,
+      index: true,
     },
-    
     customerName: {
       type: String,
       required: true,
@@ -40,21 +48,72 @@ const orderSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    guestEmail: {
+      type: String,
+      default: "",
+    },
     address: {
       type: String,
+      required: true,
+    },
+    shippingMethod: {
+      type: String,
+      default: "std",
+    },
+    shippingCost: {
+      type: Number,
+      default: 0,
+    },
+    discountCode: {
+      type: String,
+      default: "",
+    },
+    discountAmount: {
+      type: Number,
+      default: 0,
+    },
+    subtotal: {
+      type: Number,
+      default: 0,
+    },
+    tax: {
+      type: Number,
+      default: 0,
+    },
+    totalPrice: {
+      type: Number,
       required: true,
     },
     items: {
       type: [orderItemSchema],
       required: true,
     },
-    totalPrice: {
-      type: Number,
-      required: true,
-    },
     status: {
       type: String,
+      enum: ["Processing", "Paid", "Failed", "Cancelled", "Delivered"],
       default: "Processing",
+    },
+    paymentIntentId: {
+      type: String,
+      default: "",
+    },
+    paymentStatus: {
+      type: String,
+      enum: ["pending", "paid", "failed"],
+      default: "pending",
+    },
+    cancelledAt: {
+      type: Date,
+      default: null,
+    },
+    cancelReason: {
+      type: String,
+      default: "",
+    },
+    confirmationToken: {
+      type: String,
+      default: "",
+      index: true,
     },
   },
   {

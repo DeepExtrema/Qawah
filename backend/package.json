@@ -1,13 +1,16 @@
 {
-  "name": "backend",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "qahwa-supply-backend",
+  "version": "3.0.0",
+  "description": "QAHWA SUPPLY — Express + MongoDB REST API for the storefront and admin console.",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "seed": "node seed.js",
+    "test": "node --test"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["ecommerce", "express", "mongodb", "rest-api"],
+  "author": "Madiha Sultan",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
@@ -16,6 +19,8 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.9.2"
+    "mongoose": "^9.9.2",
+    "multer": "^2.0.2",
+    "stripe": "^22.5.0"
   }
 }

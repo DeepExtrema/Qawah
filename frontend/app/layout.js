@@ -1,31 +1,45 @@
+import { Caveat, Patrick_Hand } from "next/font/google";
 import { AuthProvider } from "../context/AuthContext";
 import { CartProvider } from "../context/CartContext";
-import { Geist, Geist_Mono } from "next/font/google";
+import { WishlistProvider } from "../context/WishlistContext";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const caveat = Caveat({
+  weight: "600",
   subsets: ["latin"],
+  variable: "--font-caveat",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const patrickHand = Patrick_Hand({
+  weight: "400",
   subsets: ["latin"],
+  variable: "--font-patrick",
+  display: "swap",
 });
 
 export const metadata = {
   title: "QAHWA SUPPLY",
-  description: "Yemeni coffee shop",
+  description: "Yemeni-lineage coffee, roasted weekly",
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html
+      lang="en"
+      className={`${caveat.variable} ${patrickHand.variable}`}
+    >
       <body>
         <AuthProvider>
-          <CartProvider>
-            {children}
-          </CartProvider>
+          <WishlistProvider>
+            <CartProvider>
+              <Header />
+              {children}
+              <Footer />
+            </CartProvider>
+          </WishlistProvider>
         </AuthProvider>
       </body>
     </html>
