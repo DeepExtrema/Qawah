@@ -55,13 +55,19 @@ function productImageUrl(filename) {
 }
 
 /**
- * Absolute URL for an image an administrator uploaded.
- * Uploads live in MongoDB rather than on disk, so they are served back through
- * the API. The version suffix busts any cached copy when an image is replaced.
+ * URL for an image an administrator uploaded.
+ *
+ * Also relative, for the same reason as productImageUrl: an absolute URL would
+ * pin the row to whichever host happened to serve the upload. Uploads live in
+ * MongoDB rather than on disk, so this path is served by the API. The frontend
+ * resolves a /api/... path against its configured API origin, which is the
+ * same origin in production and localhost:5001 in development.
+ *
+ * The version suffix busts any cached copy when an image is replaced.
  */
 function uploadedImageUrl(productId, version) {
   const suffix = version ? `?v=${version}` : "";
-  return `${PUBLIC_API_URL}/api/products/${productId}/image${suffix}`;
+  return `/api/products/${productId}/image${suffix}`;
 }
 
 module.exports = {

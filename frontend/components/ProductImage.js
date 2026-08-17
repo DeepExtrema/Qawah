@@ -1,13 +1,20 @@
 import Placeholder from "./Placeholder";
+import { API } from "../lib/api";
+import { resolveImageSrc } from "../lib/imageSrc.mjs";
 
 export default function ProductImage({
-  src,
+  src: rawSrc,
   alt = "",
   label = "img",
   height,
   width,
   className = "",
 }) {
+  // Every product image in the app renders through this component, so it is
+  // the single place that needs to know how a stored imageUrl maps to a
+  // loadable URL.
+  const src = resolveImageSrc(rawSrc, API);
+
   if (src) {
     const style = {};
     if (height != null) {

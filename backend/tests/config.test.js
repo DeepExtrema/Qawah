@@ -43,18 +43,19 @@ describe("seeded product image URLs are environment-portable", () => {
   });
 });
 
-describe("uploaded image URLs follow the deployment", () => {
-  it("points at localhost during local development", () => {
+describe("uploaded image URLs are environment-portable too", () => {
+  it("is a relative path, so the row is not pinned to the uploading host", () => {
     const c = readConfig(CLEAN);
-    assert.match(c.uploaded, /^http:\/\/localhost:\d+\/api\/products\/[a-f0-9]{24}\/image\?v=42$/);
+    assert.equal(c.uploaded, "/api/products/651111111111111111111111/image?v=42");
+    assert.doesNotMatch(c.uploaded, /^https?:/);
   });
 
-  it("points at the Netlify site once deployed", () => {
-    const c = readConfig({ ...CLEAN, URL: "https://qahwa.netlify.app" });
-    assert.equal(
-      c.uploaded,
-      "https://qahwa.netlify.app/api/products/651111111111111111111111/image?v=42"
-    );
+  it("is identical whether or not a site URL is present", () => {
+    const local = readConfig(CLEAN);
+    const deployed = readConfig({ ...CLEAN, URL: "https://qahwa.netlify.app" });
+    // The frontend resolves this against its API origin, which differs per
+    // environment. The stored value must not.
+    assert.equal(deployed.uploaded, local.uploaded);
   });
 
   it("carries a version stamp so a replaced image is not served from cache", () => {
@@ -86,6 +87,5 @@ describe("origins fall back to the Netlify environment", () => {
   it("strips a trailing slash so URLs never double up", () => {
     const c = readConfig({ ...CLEAN, URL: "https://qahwa.netlify.app/" });
     assert.equal(c.publicApiUrl, "https://qahwa.netlify.app");
-    assert.doesNotMatch(c.uploaded, /\/\/api\//);
   });
 });
