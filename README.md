@@ -515,8 +515,8 @@ burn a limited-use code.
 
 ## Author
 
-Madiha Sultan
-Taimoor Awan
-Jeremy Liang
-Faraibe
-Fujie
+Madiha Sultan /n
+Taimoor Awan /n
+Jeremy Liang /n 
+Faraibe /n
+Fujie 
