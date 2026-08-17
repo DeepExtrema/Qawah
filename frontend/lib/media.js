@@ -1,23 +1,19 @@
 /**
  * Editorial images that are not product photography.
  *
- * Each value is empty until the artwork exists. ProductImage falls back to its
- * placeholder on an empty src, so an unset entry degrades to the same box that
- * was previously hard-coded into the page, rather than to a broken image.
+ * The files live in frontend/public/editorial/. If one is missing,
+ * ProductImage falls back to its placeholder on the load error rather than
+ * showing a broken image, so a path can be set here before the artwork lands.
  *
- * To add one: save the file under frontend/public/editorial/ and set the path
- * here. Nothing else needs to change.
- *
- *   RECIPE_CARD_IMAGE  = "/editorial/qahwa-ibrik.png";
- *   SUBSCRIPTION_IMAGE = "/editorial/subscription.png";
- *   WHOLESALE_IMAGE    = "/editorial/wholesale.png";
+ * Two of these are portrait while their slots are landscape. That is handled:
+ * .product-photo sets object-fit: cover, so they crop rather than distort.
  */
 
-// Learn page, recipe card. Landscape, roughly 3:2.
-export const RECIPE_CARD_IMAGE = "";
+// Learn page, recipe card. Rendered at 120x78.
+export const RECIPE_CARD_IMAGE = "/editorial/qahwa-ibrik.png";
 
-// Home page promo, subscription. Small landscape, roughly 5:4.
-export const SUBSCRIPTION_IMAGE = "";
+// Home page promo, subscription. Rendered at 88x70.
+export const SUBSCRIPTION_IMAGE = "/editorial/subscription.png";
 
-// Home page promo, wholesale and trade. Small landscape, roughly 5:4.
-export const WHOLESALE_IMAGE = "";
+// Home page promo, wholesale and trade. Rendered at 88x70.
+export const WHOLESALE_IMAGE = "/editorial/wholesale.png";
