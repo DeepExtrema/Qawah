@@ -650,4 +650,4 @@ the function at all.
 | **Jeremy Liang** | Backend |
 | **Madiha Sultan** | Frontend |
 | **Faraibe** | Frontend |
-| **Fujie** | Frontend |
+| **Fujie Liang** | Frontend |
