@@ -49,7 +49,7 @@ function CoffeeGrid() {
     };
   }, []);
 
-  // Memoised so `filtered` below has a stable dependency — otherwise this
+  // Memoised so `filtered` below has a stable dependency; otherwise this
   // array is a new reference every render and the filter/sort memo never hits.
   const all = useMemo(
     () => catalog.filter((lot) => lot.category === "coffee" || lot.category === "husk"),

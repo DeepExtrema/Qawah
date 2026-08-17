@@ -246,7 +246,7 @@ export default function SubscribePage() {
                 </div>
 
                 <div className="cp" style={{ marginTop: 16 }}>
-                  CADENCE MATRIX — PICK ONE PER LOT
+                  CADENCE MATRIX · PICK ONE PER LOT
                 </div>
                 <div className="b sheet">
                   <div className="sheet-head">
@@ -320,7 +320,7 @@ export default function SubscribePage() {
                 ) : null}
                 {gift ? (
                   <p className="cp" style={{ marginTop: 8 }}>
-                    GIFT MODE — SHIPS TO A DIFFERENT ADDRESS IN STEP 4
+                    GIFT MODE · SHIPS TO A DIFFERENT ADDRESS IN STEP 4
                   </p>
                 ) : null}
               </>

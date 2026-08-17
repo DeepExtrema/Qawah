@@ -1,9 +1,9 @@
 const CANCEL_WINDOW_MS = 2 * 60 * 60 * 1000;
 
 const SHIPPING_OPTIONS = [
-  { id: "roast", label: "Roast-day dispatch — Wed", price: 9 },
-  { id: "std", label: "Standard — 3-5 days", price: 5 },
-  { id: "pickup", label: "Local pickup — Brooklyn", price: 0 },
+  { id: "roast", label: "Roast-day dispatch (Wed)", price: 9 },
+  { id: "std", label: "Standard (3-5 days)", price: 5 },
+  { id: "pickup", label: "Local pickup (Brooklyn)", price: 0 },
 ];
 
 function roundMoney(value) {

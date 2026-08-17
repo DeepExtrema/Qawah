@@ -11,7 +11,7 @@ describe("isLowStock threshold", () => {
   });
 
   it("excludes sold out and healthy inventory", () => {
-    // 0 is sold out, not low — the UI shows a different badge for it.
+    // 0 is sold out, not low; the UI shows a different badge for it.
     assert.equal(isLowStock(0), false);
     assert.equal(isLowStock(9), false);
     assert.equal(isLowStock(-3), false);

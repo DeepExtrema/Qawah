@@ -16,7 +16,7 @@ const EQUIP = ["Ibrik", "V60", "Moka pot", "Batch brewer"];
 
 const GUIDES = [
   { title: "Ibrik: 30 s bloom, 3 rises", tag: "METHOD", min: "4 MIN", topic: "ibrik", equip: "Ibrik" },
-  { title: "V60 for Haraaz naturals — 18:290", tag: "FILTER", min: "5 MIN", topic: "filter", equip: "V60" },
+  { title: "V60 for Haraaz naturals · 18:290", tag: "FILTER", min: "5 MIN", topic: "filter", equip: "V60" },
   { title: "Cardamom: when and how much", tag: "METHOD", min: "4 MIN", topic: "ibrik", equip: "Ibrik" },
   { title: "Qishr: brewing the husk, not the bean", tag: "QISHR", min: "3 MIN", topic: "qishr", equip: "Ibrik" },
   { title: "Why the Mokha port mattered", tag: "HISTORY", min: "7 MIN", topic: "history", equip: null },

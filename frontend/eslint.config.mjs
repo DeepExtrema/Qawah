@@ -20,7 +20,7 @@ const eslintConfig = defineConfig([
        * 1. Hydrating auth and cart state from localStorage (AuthContext,
        *    WishlistContext). localStorage does not exist during server
        *    rendering, so this genuinely cannot move into render or into lazy
-       *    useState initialisation — an effect is the correct place for it.
+       *    useState initialisation; an effect is the correct place for it.
        *
        * 2. Fetching a page's data on mount in the admin screens. The setState
        *    happens in an async continuation after the request resolves, not

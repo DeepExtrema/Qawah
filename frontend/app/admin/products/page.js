@@ -220,7 +220,7 @@ export default function AdminProductsPage() {
         </div>
 
         <form className="b" style={{ padding: 14, marginTop: 18 }} onSubmit={applyBulk}>
-          <label className="cp" htmlFor="bulk">Bulk inventory — one id,quantity per line</label>
+          <label className="cp" htmlFor="bulk">Bulk inventory (one id,quantity per line)</label>
           <textarea id="bulk" className="input" rows={4} value={bulk} onChange={(e) => setBulk(e.target.value)} />
           <button type="submit" className="bt" style={{ marginTop: 8 }}>
             Apply bulk

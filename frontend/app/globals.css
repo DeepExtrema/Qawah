@@ -151,7 +151,7 @@ p { margin: 0; }
   color: var(--acc);
 }
 
-/* Image placeholders — cream + diagonal hatch X */
+/* Image placeholders: cream + diagonal hatch X */
 .im {
   background-color: var(--im);
   background-image:

@@ -113,7 +113,7 @@ function ConfirmationInner() {
             {order.shippingMethod === "roast"
               ? "Roast-day dispatch is booked for Wednesday."
               : order.shippingMethod === "pickup"
-                ? "Local pickup in Brooklyn — we will hold the bag."
+                ? "Local pickup in Brooklyn. We will hold the bag."
                 : "Standard dispatch, 3–5 days after roast."}
           </p>
           <p style={{ marginTop: 8, fontSize: 13.5 }}>

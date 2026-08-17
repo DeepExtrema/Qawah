@@ -10,9 +10,9 @@ import { apiError, apiFetch } from "../../lib/api";
 import { money } from "../../lib/lots";
 
 const FALLBACK_METHODS = [
-  { id: "roast", label: "Roast-day dispatch — Wed", price: 9 },
-  { id: "std", label: "Standard — 3-5 days", price: 5 },
-  { id: "pickup", label: "Local pickup — Brooklyn", price: 0 },
+  { id: "roast", label: "Roast-day dispatch (Wed)", price: 9 },
+  { id: "std", label: "Standard (3-5 days)", price: 5 },
+  { id: "pickup", label: "Local pickup (Brooklyn)", price: 0 },
 ];
 
 export default function CheckoutPage() {
@@ -259,7 +259,7 @@ export default function CheckoutPage() {
           </div>
           {!user && (
             <p style={{ marginTop: 8, fontSize: 13.5 }}>
-              Guest checkout is open — add an email and address, no account required.
+              Guest checkout is open. Add an email and address, no account required.
             </p>
           )}
           <label htmlFor="customerEmail" className="cp" style={{ display: "block", marginTop: 8 }}>
@@ -322,7 +322,7 @@ export default function CheckoutPage() {
               >
                 {addresses.map((row) => (
                   <option key={row._id} value={row._id}>
-                    {row.label} — {row.line1}, {row.city}
+                    {row.label}: {row.line1}, {row.city}
                   </option>
                 ))}
               </select>
@@ -482,7 +482,7 @@ export default function CheckoutPage() {
             PAYMENT
           </div>
           <p style={{ marginTop: 8, fontSize: 13.5 }}>
-            Test payments only — no card numbers are stored. Use the sandbox buttons below.
+            Test payments only. No card numbers are stored. Use the sandbox buttons below.
           </p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
             <button
@@ -503,7 +503,7 @@ export default function CheckoutPage() {
           </div>
           {cart.length === 0 && (
             <p className="cp" style={{ marginTop: 8 }}>
-              BAG IS EMPTY — ADD A LOT FIRST
+              BAG IS EMPTY · ADD A LOT FIRST
             </p>
           )}
           {message ? (

@@ -208,7 +208,7 @@ export default function AccountPage() {
                   {addresses.map((row) => (
                     <div className="order-row" key={row._id}>
                       <span style={{ flex: 2 }}>
-                        {row.label} — {row.line1}, {row.city} {row.postal}
+                        {row.label}: {row.line1}, {row.city} {row.postal}
                         {row.isDefault ? " · default" : ""}
                       </span>
                       <button type="button" className="cp" style={{ background: "none", border: 0 }} onClick={() => removeAddress(row._id)}>

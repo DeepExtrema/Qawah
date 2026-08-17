@@ -23,7 +23,7 @@ export default function AdminAuditPage() {
               {rows.map((row) => (
                 <tr key={row._id}>
                   <td>{row.createdAt ? new Date(row.createdAt).toLocaleString() : ""}</td>
-                  <td>{row.actorId?.email || "—"}</td>
+                  <td>{row.actorId?.email || "n/a"}</td>
                   <td>{row.action}</td>
                   <td>{row.entity}</td>
                   <td>{row.entityId}</td>

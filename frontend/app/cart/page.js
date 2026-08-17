@@ -111,7 +111,7 @@ export default function CartPage() {
                       </select>
                     </>
                   ) : (
-                    "—"
+                    "n/a"
                   )}
                 </span>
                 <span style={{ flex: 0.7 }}>

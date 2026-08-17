@@ -182,7 +182,7 @@ export default function ProductPage() {
       return;
     }
     setEligible(false);
-    setReviewMsg("Thank you — review saved.");
+    setReviewMsg("Thank you, your review was saved.");
     setReviews((current) => [data.data, ...current]);
     setReviewCount((n) => n + 1);
   }
@@ -268,7 +268,7 @@ export default function ProductPage() {
                   <span className="cp">HARVEST</span> {lot.harvest}
                 </div>
                 <div className="spec-cell">
-                  <span className="cp">AGTRON</span> {lot.agtronLabel || lot.agtron || "—"}
+                  <span className="cp">AGTRON</span> {lot.agtronLabel || lot.agtron || "n/a"}
                 </div>
                 <div className="spec-cell">
                   <span className="cp">DENSITY</span> {lot.density}
@@ -314,7 +314,7 @@ export default function ProductPage() {
                     onClick={() => setSizeId(s.id)}
                   >
                     {s.label}
-                    {" — "}
+                    {" · "}
                     {s.trade ? "trade" : money(s.price)}
                   </button>
                 ))}
