@@ -1,5 +1,9 @@
 const express = require("express");
-const bcrypt = require("bcrypt");
+// bcryptjs, not bcrypt: the native module compiles to a platform-specific
+// .node binary that esbuild cannot bundle into a Netlify Function, so the
+// deployed API crashed on import. bcryptjs is pure JavaScript, uses the same
+// algorithm, and verifies existing $2b$ hashes, so no password had to change.
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const protect = require("../middleware/authMiddleware");
