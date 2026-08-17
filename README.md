@@ -97,15 +97,15 @@ missing, rather than failing later with a confusing 500. See [`backend/server.js
 | `MONGO_URI` | **yes** | none | MongoDB connection string. |
 | `JWT_SECRET` | **yes** | none | Signs and verifies JWTs. Use a long random string. |
 | `PORT` | no | `5001` | Port the API listens on. |
-| `CLIENT_ORIGIN` | no | `http://localhost:3000` | Origin allowed through CORS. |
-| `PUBLIC_API_URL` | no | `http://localhost:{PORT}` | Public origin of the API. Uploaded image URLs are built from it, so set it when deploying. |
+| `CLIENT_ORIGIN` | no | Netlify site URL, else `http://localhost:3000` | Origin allowed through CORS. Not needed on Netlify, where requests are same-origin. |
+| `PUBLIC_API_URL` | no | Netlify site URL, else `http://localhost:{PORT}` | Public origin of the API, used to build URLs for administrator-uploaded images. Seeded catalogue images use relative paths and need no configuration. |
 | `STRIPE_SECRET_KEY` | no | _(blank)_ | Optional Stripe **test** key. Blank uses the built-in sandbox gateway. |
 
 ### `frontend/.env.local`
 
 | Variable | Required | Default | Purpose |
 | --- | --- | --- | --- |
-| `NEXT_PUBLIC_API_URL` | no | `http://localhost:5001` | Origin of the Express API. Not a secret; it is a public URL. Inlined at build time, so rebuild after changing. |
+| `NEXT_PUBLIC_API_URL` | no | same origin in production, `http://localhost:5001` in development | Origin of the Express API. Usually needs no value: on Netlify the API is proxied at `/api` on this same domain. Not a secret; it is inlined into the client bundle at build time. |
 
 All environment reads are centralised in [`backend/utils/config.js`](backend/utils/config.js) and
 [`frontend/lib/api.js`](frontend/lib/api.js), so no host name is hard-coded at any call site.
@@ -196,7 +196,7 @@ npx netlify dev
 ## Testing
 
 ```bash
-cd backend  && npm test    # 35 tests
+cd backend  && npm test    # 43 tests
 cd frontend && npm test    #  7 tests
 ```
 
@@ -222,6 +222,7 @@ run on a clean clone with **no database and no network**. Test files are discove
 | [`backend/tests/validate.test.js`](backend/tests/validate.test.js) | Emails and discount codes are normalised; ratings outside 1–5 are rejected; object IDs and slugs are validated. | Validation is the boundary between untrusted input and the database. |
 | [`backend/tests/functionPath.test.js`](backend/tests/functionPath.test.js) | A Netlify rewrite path such as `/.netlify/functions/api/products` is translated back to `/api/products`, from `rawUrl` when present and by stripping the prefix otherwise. | If this is wrong, every API route 404s in production while working perfectly in local development. That is an expensive failure to discover after deploying. |
 | [`backend/tests/binary.test.js`](backend/tests/binary.test.js) | `toBuffer` converts a BSON Binary into a Node Buffer with identical bytes, and never returns a plain object. | Regression cover for a real bug: a `.lean()` query returns an image as a Binary wrapper, which Express JSON-encodes, corrupting it while still returning a healthy-looking 200. |
+| [`backend/tests/config.test.js`](backend/tests/config.test.js) | Seeded image URLs are relative and identical in every environment; uploaded image URLs follow the deployment; origins adopt the Netlify site URL but an explicit value still wins; trailing slashes are stripped. | An absolute seeded URL would bake the seeding machine's hostname into the database and break every product image once deployed. Each case runs in a fresh process, because `config.js` reads `process.env` at require time. |
 | [`frontend/lib/lowStock.test.mjs`](frontend/lib/lowStock.test.mjs) | `isLowStock` flags 1–8 only; 0 (sold out) and 9+ are excluded; missing/unparseable values never warn. | Off-by-one errors here show a false "almost gone" badge and mislead customers. |
 | ″ | `lowStockLabel` uses singular copy for one bag and returns `null` when no badge should render. | Returning `null` lets the component skip the element entirely instead of rendering an empty node. |
 
@@ -613,7 +614,7 @@ the function at all.
 
 | Story | How it is satisfied |
 | --- | --- |
-| I can test important application behaviour | 42 tests over pricing, discounts, cancellation rules, payment outcomes, validation, and the serverless deployment seam, with no database required. |
+| I can test important application behaviour | 50 tests over pricing, discounts, cancellation rules, payment outcomes, validation, environment configuration, and the serverless deployment seam, with no database required. |
 | I can identify errors through clear logs | One error handler logs `METHOD /path` plus a stack trace; every client error carries a machine-readable `code`. |
 | I can understand the project's folder structure | Routes / services / models / middleware / utils, one responsibility each. See [Project structure](#project-structure). |
 | I can safely configure the project using environment variables | `.env.example` templates, all reads centralised in `config.js`, and a fail-fast startup check. |

@@ -42,11 +42,16 @@ const CLIENT_ORIGIN =
   "http://localhost:3000";
 
 /**
- * Absolute URL for a seeded product image file.
- * These files ship in the repository and are served by the CDN on Netlify.
+ * URL for a seeded product image file.
+ *
+ * Deliberately relative. These 18 files ship in the repository under
+ * frontend/public/products, so the path resolves against whichever origin is
+ * serving the page: localhost:3000 in development, the Netlify domain in
+ * production. Storing an absolute URL would bake the seeding machine's
+ * hostname into the database and break every image once deployed.
  */
 function productImageUrl(filename) {
-  return `${PUBLIC_API_URL}/products/${filename}`;
+  return `/products/${filename}`;
 }
 
 /**
