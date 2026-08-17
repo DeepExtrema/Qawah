@@ -1,4 +1,4 @@
-# QAHWA SUPPLY — Tier 3 checklist
+# QAHWA SUPPLY: Tier 3 checklist
 
 Every advanced feature is a complete vertical slice (API + data + UI), not a stub.
 
@@ -33,7 +33,7 @@ For where each item is implemented, see the
 - [x] Audit log
 
 ## Payments
-- [x] Test/sandbox only — built-in sandbox gateway by default, optional Stripe test-mode adapter
+- [x] Test/sandbox only. Built-in sandbox gateway by default, optional Stripe test-mode adapter
       behind `STRIPE_SECRET_KEY` (see README → Payments)
 - [x] Do not store card numbers
 - [x] Successful payments

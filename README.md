@@ -4,8 +4,8 @@ A full-stack specialty-coffee storefront: a Next.js frontend, an Express REST AP
 
 The store sells single-origin coffee lots and brewing gear. Customers browse the catalogue,
 review coffees they have actually bought, save favourites, apply discount codes, and check out
-as a guest or a registered account. Administrators run the shop from the browser — inventory,
-categories, discounts, product images, and an audit trail — without touching source code.
+as a guest or a registered account. Administrators run the shop from the browser (inventory,
+categories, discounts, product images, and an audit trail) without touching source code.
 
 **This repository targets Tier 3.** Every Tier 3 requirement is mapped to the file that
 implements it in [Tier 3 requirement map](#tier-3-requirement-map) below.
@@ -26,6 +26,7 @@ implements it in [Tier 3 requirement map](#tier-3-requirement-map) below.
 - [Image uploads](#image-uploads)
 - [Security notes](#security-notes)
 - [Tier 3 user stories](#tier-3-user-stories)
+- [Authors](#authors)
 
 ---
 
@@ -86,14 +87,14 @@ The store opens at <http://localhost:3000>.
 
 No secret is ever committed. `backend/.env` and `frontend/.env.local` are git-ignored; only the
 `.env.example` templates are tracked. The server **refuses to start** if a required variable is
-missing, rather than failing later with a confusing 500 — see [`backend/server.js`](backend/server.js).
+missing, rather than failing later with a confusing 500. See [`backend/server.js`](backend/server.js).
 
 ### `backend/.env`
 
 | Variable | Required | Default | Purpose |
 | --- | --- | --- | --- |
-| `MONGO_URI` | **yes** | — | MongoDB connection string. |
-| `JWT_SECRET` | **yes** | — | Signs and verifies JWTs. Use a long random string. |
+| `MONGO_URI` | **yes** | none | MongoDB connection string. |
+| `JWT_SECRET` | **yes** | none | Signs and verifies JWTs. Use a long random string. |
 | `PORT` | no | `5001` | Port the API listens on. |
 | `CLIENT_ORIGIN` | no | `http://localhost:3000` | Origin allowed through CORS. |
 | `PUBLIC_API_URL` | no | `http://localhost:{PORT}` | Public origin of the API. Uploaded image URLs are built from it, so set it when deploying. |
@@ -103,7 +104,7 @@ missing, rather than failing later with a confusing 500 — see [`backend/server
 
 | Variable | Required | Default | Purpose |
 | --- | --- | --- | --- |
-| `NEXT_PUBLIC_API_URL` | no | `http://localhost:5001` | Origin of the Express API. Not a secret — it is a public URL. Inlined at build time, so rebuild after changing. |
+| `NEXT_PUBLIC_API_URL` | no | `http://localhost:5001` | Origin of the Express API. Not a secret; it is a public URL. Inlined at build time, so rebuild after changing. |
 
 All environment reads are centralised in [`backend/utils/config.js`](backend/utils/config.js) and
 [`frontend/lib/api.js`](frontend/lib/api.js), so no host name is hard-coded at any call site.
@@ -117,7 +118,7 @@ cd backend  && npm test    # 21 tests
 cd frontend && npm test    #  7 tests
 ```
 
-Both suites use the built-in **`node --test`** runner — no test framework to install, and they
+Both suites use the built-in **`node --test`** runner, so there is no test framework to install, and they
 run on a clean clone with **no database and no network**. Test files are discovered automatically.
 
 ### What is tested, and why
@@ -142,7 +143,7 @@ run on a clean clone with **no database and no network**. Test files are discove
 
 **How the payment tests avoid a database:** `chargeSandbox` only ever calls `order.save()`, so the
 tests pass a plain object with a `save()` method in place of a Mongoose document. No mocking
-library, no in-memory MongoDB, no connection string — the suite runs anywhere.
+library, no in-memory MongoDB, no connection string. The suite runs anywhere.
 
 ---
 
@@ -171,7 +172,7 @@ Every requirement, and the file that implements it.
 
 | Feature | Backend | Frontend |
 | --- | --- | --- |
-| Sales dashboard, revenue, order statistics | `GET /api/admin/stats` — MongoDB aggregation | [`app/admin/page.js`](frontend/app/admin/page.js) |
+| Sales dashboard, revenue, order statistics | `GET /api/admin/stats` (MongoDB aggregation) | [`app/admin/page.js`](frontend/app/admin/page.js) |
 | Low-inventory alerts | `GET /api/admin/stats` (`lowInventory`) | [`app/admin/page.js`](frontend/app/admin/page.js) |
 | Category management | `/api/admin/categories` (CRUD) | [`app/admin/categories/page.js`](frontend/app/admin/categories/page.js) |
 | Customer management | `GET /api/admin/customers` | [`app/admin/customers/page.js`](frontend/app/admin/customers/page.js) |
@@ -196,16 +197,16 @@ Every requirement, and the file that implements it.
 
 | Requirement | Where |
 | --- | --- |
-| Organised service layers | [`backend/services/`](backend/services) — `OrderService`, `PaymentService`, `InventoryService`, `DiscountService`, `ProductService` |
-| Reusable frontend components | [`frontend/components/`](frontend/components) — `ProductImage`, `LowStockBadge`, `WishlistButton`, `AddToCartButton`, `Header`, `Footer` |
+| Organised service layers | [`backend/services/`](backend/services): `OrderService`, `PaymentService`, `InventoryService`, `DiscountService`, `ProductService` |
+| Reusable frontend components | [`frontend/components/`](frontend/components): `ProductImage`, `LowStockBadge`, `WishlistButton`, `AddToCartButton`, `Header`, `Footer` |
 | Reusable backend logic | [`utils/validate.js`](backend/utils/validate.js), [`utils/asyncHandler.js`](backend/utils/asyncHandler.js), [`utils/config.js`](backend/utils/config.js) |
-| Centralised error handling | [`middleware/errorHandler.js`](backend/middleware/errorHandler.js) — one handler; 5xx details are logged, never leaked to the client |
+| Centralised error handling | [`middleware/errorHandler.js`](backend/middleware/errorHandler.js): one handler; 5xx details are logged, never leaked to the client |
 | Data validation | [`utils/validate.js`](backend/utils/validate.js), applied at every route boundary |
 | Secure environment variables | [`utils/config.js`](backend/utils/config.js) + fail-fast startup check |
 | Consistent API responses | Every endpoint returns `{ data }` on success and `{ error: { message, code } }` on failure |
 | Thoughtful database design | Order line items embedded (immutable at purchase time); everything else referenced |
 | Optimised queries | Compound indexes on `Review`, `WishlistItem`, `RecentlyViewed`, `SavedCart`, `AuditLog`; `.lean()` on read-only paths; aggregation for stats |
-| Accessible forms | Every input is associated with a label — `htmlFor` where the control is separate, a wrapping `<label>` for checkboxes and file pickers; errors announced in text, not colour alone |
+| Accessible forms | Every input is associated with a label: `htmlFor` where the control is separate, a wrapping `<label>` for checkboxes and file pickers; errors announced in text, not colour alone |
 | Strong responsive design | Fluid grids in [`app/globals.css`](frontend/app/globals.css) |
 | Client vs server components | Server components by default; `"use client"` only where state or effects are needed |
 
@@ -226,7 +227,7 @@ Every requirement, and the file that implements it.
 ```
 
 **The layering rule:** routes handle HTTP and authorisation, services hold business rules, models
-define schema. Pricing lives in `services/orderTotals.js` — a dependency-free module, which is
+define schema. Pricing lives in `services/orderTotals.js`, a dependency-free module, which is
 why the money rules are directly unit-testable without a database.
 
 ### Request lifecycle
@@ -245,7 +246,7 @@ Request
 
 Route handlers never contain `try/catch`. [`asyncHandler`](backend/utils/asyncHandler.js) wraps
 each one so a rejected promise reaches the central error handler, which decides the status code
-and — critically — replaces 5xx messages with a generic string so internal details never leak.
+and, critically, replaces 5xx messages with a generic string so internal details never leak.
 
 ---
 
@@ -259,7 +260,7 @@ Qawah/
 │   │   ├── audit.js                # writes AuditLog entries
 │   │   ├── authMiddleware.js       # JWT verification (required)
 │   │   ├── errorHandler.js         # single centralised error handler
-│   │   └── optionalAuth.js         # attaches user if present — enables guest checkout
+│   │   └── optionalAuth.js         # attaches user if present, enables guest checkout
 │   ├── models/                     # 12 Mongoose schemas
 │   ├── routes/                     # HTTP layer, one file per resource
 │   ├── services/                   # business logic
@@ -268,7 +269,7 @@ Qawah/
 │   │   ├── OrderService.js
 │   │   ├── PaymentService.js
 │   │   ├── ProductService.js
-│   │   └── orderTotals.js          # pure pricing — no DB, fully unit-tested
+│   │   └── orderTotals.js          # pure pricing, no DB, fully unit-tested
 │   ├── tests/                      # node --test suites
 │   ├── utils/
 │   │   ├── AppError.js             # error + HTTP status + machine-readable code
@@ -276,7 +277,7 @@ Qawah/
 │   │   ├── config.js               # every process.env read lives here
 │   │   └── validate.js             # shared validators
 │   ├── public/products/            # uploaded and seeded product images
-│   ├── .env.example                # template — copy to .env
+│   ├── .env.example                # template, copy to .env
 │   ├── seed.js                     # catalogue + demo accounts
 │   └── server.js                   # app wiring, fail-fast config check
 │
@@ -309,34 +310,34 @@ Qawah/
 All responses are JSON. Success is `{ "data": ... }` (some also include `message`).
 Failure is `{ "error": { "message": "...", "code": "..." } }`.
 
-Auth legend — **—** public · **A** authenticated · **G** guest-capable (token or email) · **ADM** admin only.
+Auth legend: **Public** = no authentication needed · **A** = authenticated · **G** = guest-capable (confirmation token or order email) · **ADM** = admin only.
 
-### Authentication — `/api/auth`
+### Authentication (`/api/auth`)
 
 | Method | Path | Auth | Purpose |
 | --- | --- | --- | --- |
-| `POST` | `/register` | — | Create an account |
-| `POST` | `/login` | — | Obtain a JWT |
+| `POST` | `/register` | Public | Create an account |
+| `POST` | `/login` | Public | Obtain a JWT |
 | `GET` | `/me` | A | Current profile |
 | `PUT` | `/me` | A | Update profile |
 
-### Products — `/api/products`
+### Products (`/api/products`)
 
 | Method | Path | Auth | Purpose |
 | --- | --- | --- | --- |
-| `GET` | `/` | — | List products |
-| `GET` | `/:id` | — | Product detail |
-| `GET` | `/:id/reviews` | — | Reviews for a product |
-| `GET` | `/:id/recommendations` | — | Related products |
+| `GET` | `/` | Public | List products |
+| `GET` | `/:id` | Public | Product detail |
+| `GET` | `/:id/reviews` | Public | Reviews for a product |
+| `GET` | `/:id/recommendations` | Public | Related products |
 | `POST` | `/` | ADM | Create |
 | `PUT` | `/:id` | ADM | Update |
 | `DELETE` | `/:id` | ADM | Delete |
 
-### Orders — `/api/orders`
+### Orders (`/api/orders`)
 
 | Method | Path | Auth | Purpose |
 | --- | --- | --- | --- |
-| `POST` | `/` | G | Place an order — priced entirely on the server |
+| `POST` | `/` | G | Place an order, priced entirely on the server |
 | `GET` | `/my-orders` | A | Signed-in customer's history |
 | `GET` | `/:id` | G | Order detail |
 | `GET` | `/:id/confirmation` | G | Email-style confirmation |
@@ -344,12 +345,12 @@ Auth legend — **—** public · **A** authenticated · **G** guest-capable (to
 | `GET` | `/` | ADM | All orders |
 | `PATCH` | `/:id/status` | ADM | Update status |
 
-### Payments — `/api/payments`
+### Payments (`/api/payments`)
 
 | Method | Path | Auth | Purpose |
 | --- | --- | --- | --- |
-| `GET` | `/config` | — | Active provider (`sandbox` or `stripe`) |
-| `POST` | `/sandbox` | G | Sandbox charge — `outcome: "success" \| "decline"` |
+| `GET` | `/config` | Public | Active provider (`sandbox` or `stripe`) |
+| `POST` | `/sandbox` | G | Sandbox charge with `outcome: "success" \| "decline"` |
 | `POST` | `/intent` | G | Create a Stripe PaymentIntent |
 | `POST` | `/confirm` | G | Verify a Stripe payment server-side |
 
@@ -362,11 +363,11 @@ Auth legend — **—** public · **A** authenticated · **G** guest-capable (to
 | `GET` `PUT` | `/api/cart` | G | Saved cart |
 | `GET` `POST` | `/api/recent` | G | Recently viewed |
 | `POST` | `/api/discounts/validate` | G | Validate a discount code |
-| `GET` | `/api/shipping-options` | — | Shipping methods and prices |
+| `GET` | `/api/shipping-options` | Public | Shipping methods and prices |
 | `GET` | `/api/reviews/eligible/:productId` | A | May this customer review it? |
 | `POST` | `/api/reviews` | A | Submit a review |
 
-### Admin — `/api/admin` *(all **ADM**)*
+### Admin (`/api/admin`) *(all **ADM**)*
 
 | Method | Path | Purpose |
 | --- | --- | --- |
@@ -445,7 +446,7 @@ burn a limited-use code.
 
 ## Image uploads
 
-`POST /api/admin/products/:id/image` — admin only, handled by `multer` in
+`POST /api/admin/products/:id/image` is admin only, handled by `multer` in
 [`routes/adminRoutes.js`](backend/routes/adminRoutes.js).
 
 - **Type restriction:** PNG, JPEG, and WEBP only, rejected at the `fileFilter` stage.
@@ -466,7 +467,7 @@ burn a limited-use code.
   (`/api/admin/customers` explicitly selects `-password`).
 - **JWT** authentication, with `adminOnly` layered on top for every admin route.
 - Customers can only read their own orders. Guests use a random 24-byte `confirmationToken` or
-  their order email — see `OrderService.canViewOrder`.
+  their order email. See `OrderService.canViewOrder`.
 - The `confirmationToken` is stripped from API responses unless the order was just created
   (`publicOrder({ includeToken })`).
 - **CORS** is restricted to `CLIENT_ORIGIN`.
@@ -492,31 +493,33 @@ burn a limited-use code.
 | Story | How it is satisfied |
 | --- | --- |
 | I can identify products with low inventory | `GET /api/admin/stats` returns a `lowInventory` list sorted lowest-first; `LowStockBadge` warns customers too. |
-| I can view useful store statistics | Revenue, paid-order count, total orders, and a breakdown by status — computed with a MongoDB aggregation. |
+| I can view useful store statistics | Revenue, paid-order count, total orders, and a breakdown by status, computed with a MongoDB aggregation. |
 | I can manage products without changing source code | Full CRUD, image upload, bulk inventory edits, and category management from `/admin`. |
 
 ### Engineer
 
 | Story | How it is satisfied |
 | --- | --- |
-| I can test important application behaviour | 28 tests over pricing, discounts, cancellation, payments, and validation — no database required. |
+| I can test important application behaviour | 28 tests over pricing, discounts, cancellation, payments, and validation, with no database required. |
 | I can identify errors through clear logs | One error handler logs `METHOD /path` plus a stack trace; every client error carries a machine-readable `code`. |
-| I can understand the project's folder structure | Routes / services / models / middleware / utils, one responsibility each — see [Project structure](#project-structure). |
+| I can understand the project's folder structure | Routes / services / models / middleware / utils, one responsibility each. See [Project structure](#project-structure). |
 | I can safely configure the project using environment variables | `.env.example` templates, all reads centralised in `config.js`, and a fail-fast startup check. |
 
 ---
 
 ## Tech stack
 
-**Frontend** — Next.js 16 (App Router), React 19, React Context, CSS
-**Backend** — Node.js, Express 5, Mongoose 9, bcrypt, jsonwebtoken, multer, dotenv, stripe (optional)
-**Database** — MongoDB / MongoDB Atlas
-**Testing** — `node --test` (built-in)
+- **Frontend:** Next.js 16 (App Router), React 19, React Context, CSS
+- **Backend:** Node.js, Express 5, Mongoose 9, bcrypt, jsonwebtoken, multer, dotenv, stripe (optional)
+- **Database:** MongoDB / MongoDB Atlas
+- **Testing:** `node --test` (built-in)
 
-## Author
+## Authors
 
-Madiha Sultan,
-Taimoor Awan,
-Jeremy Liang,
-Faraibe,
-Fujie,
+| Author | Area of ownership |
+| --- | --- |
+| **Taimoor Awan** | Database |
+| **Jeremy Liang** | Backend |
+| **Madiha Sultan** | Frontend |
+| **Faraibe** | Frontend |
+| **Fujie** | Frontend |

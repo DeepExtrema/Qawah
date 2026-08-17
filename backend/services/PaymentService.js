@@ -2,9 +2,9 @@
  * Payment layer.
  *
  * Two providers behind one interface:
- *   - "sandbox" (default) — a self-contained test gateway. No card data ever
+ *   - "sandbox" (default): a self-contained test gateway. No card data ever
  *     reaches the server; the client asks for a success or a decline outcome.
- *   - "stripe" — activated by setting STRIPE_SECRET_KEY to a sk_test_ key.
+ *   - "stripe": activated by setting STRIPE_SECRET_KEY to a sk_test_ key.
  *     Card details go straight from the browser to Stripe; this server only
  *     ever sees a PaymentIntent id.
  *

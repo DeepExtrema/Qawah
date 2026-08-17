@@ -3,7 +3,7 @@
  *
  * Every value has a development-friendly default so a fresh clone runs with
  * only MONGO_URI and JWT_SECRET set, but nothing is hard-coded at the call
- * site — deploying only means setting PUBLIC_API_URL and CLIENT_ORIGIN.
+ * site. Deploying only means setting PUBLIC_API_URL and CLIENT_ORIGIN.
  */
 
 const PORT = Number(process.env.PORT) || 5001;

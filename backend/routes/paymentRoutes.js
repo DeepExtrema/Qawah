@@ -33,7 +33,7 @@ router.get("/config", (req, res) => {
   res.json({ data: { provider: PaymentService.activeProvider() } });
 });
 
-/** Sandbox gateway — the default flow. `outcome` picks success or decline. */
+/** Sandbox gateway, the default flow. `outcome` picks success or decline. */
 router.post(
   "/sandbox",
   optionalAuth,
@@ -56,7 +56,7 @@ router.post(
   asyncHandler(async (req, res) => {
     const order = await loadPayableOrder(req);
     const intent = await PaymentService.createStripeIntent(order);
-    // Only the client secret leaves the server — never the API key.
+    // Only the client secret leaves the server, never the API key.
     res.json({
       data: {
         clientSecret: intent.client_secret,

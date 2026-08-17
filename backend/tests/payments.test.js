@@ -6,7 +6,7 @@ const PaymentService = require("../services/PaymentService");
  * A stand-in for a Mongoose Order document.
  *
  * chargeSandbox only needs `save()`, so the payment rules can be tested
- * without a live MongoDB — these assertions run anywhere, including CI.
+ * without a live MongoDB. These assertions run anywhere, including CI.
  */
 function fakeOrder(overrides = {}) {
   const order = {
@@ -86,13 +86,13 @@ describe("sandbox gateway outcomes", () => {
         return true;
       }
     );
-    // The order stays recoverable — failed, not cancelled — so the customer
+    // The order stays recoverable (failed, not cancelled), so the customer
     // can retry rather than having to rebuild their cart.
     assert.equal(order.paymentStatus, "failed");
     assert.equal(order.status, "Processing");
   });
 
-  it("is idempotent — paying an already-paid order does not double-charge", async () => {
+  it("is idempotent: paying an already-paid order does not double-charge", async () => {
     const order = fakeOrder({ paymentStatus: "paid", status: "Paid" });
     const result = await PaymentService.chargeSandbox(order, "success");
 

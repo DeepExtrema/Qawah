@@ -1,7 +1,7 @@
 {
   "name": "qahwa-supply-backend",
   "version": "3.0.0",
-  "description": "QAHWA SUPPLY — Express + MongoDB REST API for the storefront and admin console.",
+  "description": "QAHWA SUPPLY: Express + MongoDB REST API for the storefront and admin console.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -10,7 +10,7 @@
     "test": "node --test"
   },
   "keywords": ["ecommerce", "express", "mongodb", "rest-api"],
-  "author": "Madiha Sultan",
+  "author": "Jeremy Liang",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
