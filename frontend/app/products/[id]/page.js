@@ -148,6 +148,13 @@ export default function ProductPage() {
     );
   }
 
+  // Real images only. Most lots ship a single photo, so the thumbnail rail
+  // stays hidden rather than padding itself out with empty slots.
+  const gallery = (
+    Array.isArray(lot.images) && lot.images.length ? lot.images : [lot.imageUrl]
+  ).filter(Boolean);
+  const activeImage = gallery[thumb] || gallery[0] || lot.imageUrl;
+
   const activeSize = sizes.find((s) => s.id === sizeId) || sizes[0];
   const unitPrice =
     activeSize?.trade || activeSize?.price == null
@@ -196,34 +203,40 @@ export default function ProductPage() {
           </span>
         </div>
 
-        <div className="pdp">
-          <div className="thumbs">
-            {[1, 2, 3, 4].map((n, i) => (
-              <button
-                key={n}
-                type="button"
-                onClick={() => setThumb(i)}
-                style={{
-                  background: "none",
-                  padding: 0,
-                  border: 0,
-                  opacity: thumb === i ? 1 : 0.7,
-                }}
-                aria-label={`Image ${n}`}
-              >
-                <ProductImage
-                  src={i === 0 ? lot.imageUrl : undefined}
-                  alt={lot.name}
-                  label={String(n)}
-                  height={60}
-                />
-              </button>
-            ))}
-          </div>
+        <div className={gallery.length > 1 ? "pdp" : "pdp pdp-nothumbs"}>
+          {/* The rail only appears when there is a second image to switch to.
+              It used to render four fixed slots and fill just the first, so
+              every product showed three empty boxes. */}
+          {gallery.length > 1 ? (
+            <div className="thumbs">
+              {gallery.map((image, i) => (
+                <button
+                  key={image}
+                  type="button"
+                  onClick={() => setThumb(i)}
+                  aria-label={`Show image ${i + 1} of ${gallery.length}`}
+                  aria-current={thumb === i}
+                  style={{
+                    background: "none",
+                    padding: 0,
+                    border: 0,
+                    opacity: thumb === i ? 1 : 0.7,
+                  }}
+                >
+                  <ProductImage
+                    src={image}
+                    alt={`${lot.name}, image ${i + 1}`}
+                    label={String(i + 1)}
+                    height={60}
+                  />
+                </button>
+              ))}
+            </div>
+          ) : null}
 
           <div>
             <ProductImage
-              src={lot.imageUrl}
+              src={activeImage}
               alt={lot.displayName || lot.name}
               label="main image"
               height={212}
@@ -290,6 +303,21 @@ export default function ProductPage() {
               ))}
               {lot.score ? <span className="ch">{lot.score} pts</span> : null}
             </div>
+
+            {lot.story ? (
+              <section className="b lot-story" aria-labelledby="lot-story-heading">
+                <span className="cp" id="lot-story-heading">
+                  {lot.category === "gear" ? "ABOUT THIS" : "THE LOT"}
+                </span>
+                {lot.story
+                  .split(/\n\s*\n/)
+                  .map((paragraph) => paragraph.trim())
+                  .filter(Boolean)
+                  .map((paragraph) => (
+                    <p key={paragraph.slice(0, 40)}>{paragraph}</p>
+                  ))}
+              </section>
+            ) : null}
           </div>
 
           <div>

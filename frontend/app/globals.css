@@ -545,6 +545,12 @@ p { margin: 0; }
   gap: 16px;
   padding: 16px 0 28px;
 }
+/* Lots with a single photo render no thumbnail rail, so the column it would
+   have occupied is given back to the image instead of left as a gap. The
+   860px rule below still collapses both variants to one column. */
+.pdp-nothumbs {
+  grid-template-columns: 1fr 250px;
+}
 .thumbs {
   display: flex;
   flex-direction: column;
@@ -577,6 +583,22 @@ p { margin: 0; }
   gap: 8px;
   margin-top: 12px;
   flex-wrap: wrap;
+}
+/* Origin narrative on the product page. Set slightly wider than the spec
+   sheet's measure so it reads as prose rather than another data table. */
+.lot-story {
+  margin-top: 14px;
+  padding: 12px 14px 14px;
+}
+.lot-story p {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.65;
+  max-width: 62ch;
+  color: var(--ink);
+}
+.lot-story p:last-child {
+  margin-bottom: 0;
 }
 .buy {
   padding: 12px;

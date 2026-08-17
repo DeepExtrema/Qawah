@@ -16,6 +16,7 @@ const router = express.Router();
 const PRODUCT_FIELDS = [
   "name",
   "description",
+  "story",
   "price",
   "category",
   "imageUrl",

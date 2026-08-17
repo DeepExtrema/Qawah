@@ -37,6 +37,8 @@ const LOT_DEFS = [
   {
     _id: "lot-haraaz-red",
     slug: "haraaz-red",
+    story:
+      "The Haraaz massif climbs in terraces so steep that most of the harvest still comes down by foot. The Udaini trees on these slopes are old, and nobody on the mountain quite agrees on who planted them. Cherries dry whole on rooftops, raked by hand through the afternoon and covered before the cold comes down. That slow rooftop drying is where the stone fruit comes from, and the cardamom note that trails it. We roast it light so the fruit stays at the front of the cup.",
     name: "Haraaz Red",
     price: 21,
     sizeLabel: "340 g",
@@ -74,6 +76,8 @@ const LOT_DEFS = [
   {
     _id: "lot-mokha-harasi",
     slug: "mokha-harasi",
+    story:
+      "Mokha gave its name to the entire trade, and the Harasi trees inland of the old port still make a cup shaped by the habits built around it. Picked in January, dried whole, and roasted darker than we take most Yemeni coffee, on purpose: the date sweetness holds its ground and a thread of smoke arrives behind it. Brew it strong and small. This is the lot our ibrik customers reorder most.",
     name: "Mokha Harasi",
     price: 23,
     sizeLabel: "340 g",
@@ -111,6 +115,8 @@ const LOT_DEFS = [
   {
     _id: "lot-dhikr-blend",
     slug: "dhikr-blend",
+    story:
+      "Built for a room full of people rather than for a cupping table. We blend the Yemeni naturals that land in volumes too small for their own release, and roast them dark enough to stay recognisable through cardamom, sugar and a long pour. Cocoa first, dried fig underneath, spice at the finish. It is the pot that stays on after everyone has arrived.",
     name: "Dhikr Blend",
     price: 19,
     sizeLabel: "340 g",
@@ -148,6 +154,8 @@ const LOT_DEFS = [
   {
     _id: "lot-qishr",
     slug: "qishr",
+    story:
+      "Before the bean was the drink, the husk was. Qishr is the dried shell of the coffee cherry, simmered with ginger and cinnamon and served hot and sweet, and across much of Yemen it never stopped being the everyday cup. There is almost no caffeine in it, which is why it belongs at the end of an evening rather than the start of a day. Simmer it properly. Steeping it like tea will get you coloured water and nothing else.",
     name: "Qishr",
     price: 14,
     sizeLabel: "200 g",
@@ -186,6 +194,8 @@ const LOT_DEFS = [
   {
     _id: "lot-dawairi-04",
     slug: "dawairi-lot-04",
+    story:
+      "Washed Yemeni coffee stays rare for an unromantic reason: the water it takes is not something most terraces can spare. This Dawairi lot comes from the highest ground we buy, above 2,300 m, where cherry ripens slowly enough to keep its acidity. Depulped the same day it was picked, then dried on patios under shade cloth. The result is unusually clean for the origin, with jasmine, white grape and a lime edge that holds to the last sip.",
     name: "Dawairi Lot 04",
     price: 26,
     sizeLabel: "340 g",
@@ -223,6 +233,8 @@ const LOT_DEFS = [
   {
     _id: "lot-tuffahi-7",
     slug: "tuffahi-n7",
+    story:
+      "Tuffahi means apple, and for once the varietal name is doing honest work. The trees sit just above 2,000 m on terraces that catch morning sun and lose it early, and the fruit that comes off them is crisp rather than jammy. Dried whole, then roasted medium, which is exactly where the honey and the bergamot sit before either one takes over.",
     name: "Tuffahi Nº 7",
     price: 24,
     sizeLabel: "340 g",
@@ -260,6 +272,8 @@ const LOT_DEFS = [
   {
     _id: "lot-sanaa-espresso",
     slug: "sanaa-espresso",
+    story:
+      "An omni-roast built to survive milk without vanishing into it. Sana'a sits in a high basin ringed by mountains, and the lots we blend for this come from the terraces on all sides of it. Pulled at nine bars it gives cocoa and walnut with molasses in the finish; in a moka pot it goes rounder and sweeter. The only coffee here we have tuned for a machine rather than a hand pour.",
     name: "Sana'a Espresso",
     price: 20,
     sizeLabel: "340 g",
@@ -297,6 +311,8 @@ const LOT_DEFS = [
   {
     _id: "lot-haraaz-2",
     slug: "haraaz-n2",
+    story:
+      "The same mountain as Haraaz Red, a different set of terraces, and a noticeably prettier cup. N2 sits perhaps fifty metres higher and faces east, so the cherry hangs longer and comes in lighter. Apricot and open florals rather than stone fruit and cocoa. It is a small lot every year, and when it is gone it does not return until the next February.",
     name: "Haraaz Nº 2",
     price: 22,
     sizeLabel: "340 g",
@@ -334,6 +350,8 @@ const LOT_DEFS = [
   {
     _id: "lot-bani-matar",
     slug: "bani-matar-honey",
+    story:
+      "Bani Matar is where the honey process makes the most sense to us: enough afternoon sun to dry the sticky mucilage quickly, and nights cold enough that it does not ferment past the point of being useful. The fruit layer is left on the seed and the beds are turned every hour through the first two days. Honey in the name and in the cup, stone fruit behind it, and a dry almond note at the very end.",
     name: "Bani Matar Honey",
     price: 22,
     sizeLabel: "340 g",
@@ -371,6 +389,8 @@ const LOT_DEFS = [
   {
     _id: "lot-yirgacheffe-08",
     slug: "yirgacheffe-lot-08",
+    story:
+      "The coffee that taught most people what washed Ethiopian is supposed to taste like. Heirloom varietals nobody has fully catalogued, grown on smallholdings measured in hundreds of trees rather than hectares, delivered to a shared washing station and dried on raised beds. Bergamot arrives first, then peach, then jasmine sitting over the top of both. Lot 08 is the cleanest of this season's arrivals.",
     name: "Yirgacheffe Lot 08",
     price: 18,
     sizeLabel: "340 g",
@@ -408,6 +428,8 @@ const LOT_DEFS = [
   {
     _id: "lot-sidamo-natural",
     slug: "sidamo-natural",
+    story:
+      "Naturals from Sidamo are the reason people started arguing about whether fruit this loud belongs in coffee at all. Whole cherries dry in the sun for close to three weeks, turned constantly, and the sugars in the fruit work their way into the seed. Blueberry so distinct it reads as deliberate, cocoa underneath it, florals around the edge. We roast to medium to keep it from tipping into something winey.",
     name: "Sidamo Natural",
     price: 17,
     sizeLabel: "340 g",
@@ -445,6 +467,8 @@ const LOT_DEFS = [
   {
     _id: "lot-guji-honey",
     slug: "guji-honey",
+    story:
+      "Guji sits high enough, and separately enough, that it behaves like its own origin rather than a corner of Sidamo. This is a honey lot from around 2,000 m: the skin comes off, the sticky layer stays on, and the whole thing dries slowly on beds. Honeydew and citrus up front, and a thin tea-like body that gets better as the cup cools, which is the opposite of what most coffee does.",
     name: "Guji Honey",
     price: 19,
     sizeLabel: "340 g",
@@ -482,6 +506,8 @@ const LOT_DEFS = [
   {
     _id: "lot-harrar",
     slug: "harrar-longberry",
+    story:
+      "Harrar is dry-processed out of necessity rather than fashion, in a region where water is the scarce input. The Longberry bean is unmistakable in the hand: long, pointed and gloriously uneven, which makes it a nuisance to roast evenly and worth the trouble anyway. Blueberry and wine over something earthy underneath. Taken dark, which is how it has always been drunk close to where it grows.",
     name: "Harrar Longberry",
     price: 18,
     sizeLabel: "340 g",
@@ -519,6 +545,8 @@ const LOT_DEFS = [
   {
     _id: "lot-java-kayumas",
     slug: "java-kayumas",
+    story:
+      "Typica survived on Java after leaf rust took it out of almost everywhere else, and the trees on the Kayumas slopes are descended from that stubborn population. Washed and dried on open patios in the dry season, at altitudes far lower than the East African lots on this shelf. Cedar, cocoa and brown sugar, with low acidity and a heavy body. This is what we hand people who tell us they do not like light roasts.",
     name: "Java Kayumas",
     price: 16,
     sizeLabel: "340 g",
@@ -556,6 +584,8 @@ const LOT_DEFS = [
   {
     _id: "lot-java-preanger",
     slug: "java-preanger",
+    story:
+      "Preanger is the older name for the highlands south of Bandung, and it turns up on shipping documents a century before it turns up on menus. Honey-processed here, which is unusual for the region and softens the edges considerably. Tobacco and warm spice sitting over cocoa. Grown lower than the Kayumas and noticeably rounder for it.",
     name: "Java Preanger",
     price: 16,
     sizeLabel: "340 g",
@@ -593,6 +623,8 @@ const LOT_DEFS = [
   {
     _id: "lot-filter-papers",
     slug: "filter-papers-100",
+    story:
+      "Bleached tabbed papers cut for 02-size V60 and Kalita Wave brewers, a hundred to a box. Bleached rather than natural because unbleached paper needs a longer rinse to stop tasting of itself. Rinse them anyway: it seats the paper against the cone and warms the brewer at the same time.",
     name: "Filter papers ×100",
     price: 9,
     sizeLabel: "×100",
@@ -628,6 +660,8 @@ const LOT_DEFS = [
   {
     _id: "lot-ibrik-copper",
     slug: "ibrik-copper-240",
+    story:
+      "Hand-hammered copper, tinned on the inside, 240 ml to the rim, which is two small cups with room for the foam to climb. Copper because it responds to a change in heat almost immediately, and the three rises that make qahwa work are a matter of pulling the pot off the flame at the right second. The tin lining needs redoing every few years. That is normal.",
     name: "Copper ibrik 240 ml",
     price: 48,
     sizeLabel: "240 ml",
@@ -663,6 +697,8 @@ const LOT_DEFS = [
   {
     _id: "lot-bag-clips",
     slug: "bag-clips",
+    story:
+      "Four steel clips, wide enough to close a 340 g bag across the whole fold and stiff enough to keep it there. Coffee goes stale from oxygen far faster than from time, so the valve on the bag is only half the job. Fold the bag over twice, then clip it. Unglamorous, and it buys you another week of the coffee you paid for.",
     name: "Bag clips ×4",
     price: 6,
     sizeLabel: "×4",
@@ -753,6 +789,7 @@ export function mergeWithApi(apiProducts) {
             ? hit.inventory <= 0
             : lot.soldOut,
       category: hit.category || lot.category,
+      story: hit.story || lot.story,
       imageUrl: hit.imageUrl || lot.imageUrl,
       images: Array.isArray(hit.images) && hit.images.length ? hit.images : lot.images,
       roast: hit.roast || lot.roast,

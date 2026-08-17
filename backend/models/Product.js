@@ -10,6 +10,13 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    // Longer origin narrative shown on the product page. Optional, so gear and
+    // any product added later through the admin console does not have to have
+    // one before it can be saved.
+    story: {
+      type: String,
+      default: "",
+    },
     price: {
       type: Number,
       required: true,
