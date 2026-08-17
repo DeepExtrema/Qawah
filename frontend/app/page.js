@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import Placeholder from "../components/Placeholder";
+import { SUBSCRIPTION_IMAGE, WHOLESALE_IMAGE } from "../lib/media";
 import ProductImage from "../components/ProductImage";
 import AddToCartButton from "../components/AddToCartButton";
 import WishlistButton from "../components/WishlistButton";
@@ -116,7 +116,7 @@ export default function Home() {
       <div className="shell">
         <div className="promo-row">
           <div className="promo">
-            <Placeholder label="img" width={88} height={70} />
+            <ProductImage src={SUBSCRIPTION_IMAGE} alt="" label="img" width={88} height={70} />
             <div className="promo-copy">
               <div>Subscribe · from $17.85</div>
               <div className="cp">SET GRIND + CADENCE, SKIP ANY WEEK</div>
@@ -126,7 +126,7 @@ export default function Home() {
             </Link>
           </div>
           <div className="promo">
-            <Placeholder label="img" width={88} height={70} />
+            <ProductImage src={WHOLESALE_IMAGE} alt="" label="img" width={88} height={70} />
             <div className="promo-copy">
               <div>Cafés, masjids, offices</div>
               <div className="cp">5 KG TIERS · NET-30 · TRAINING INCLUDED</div>

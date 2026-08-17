@@ -857,6 +857,72 @@ textarea.input {
   border-bottom: 1.4px solid var(--hair);
 }
 .guide-row:last-child { border-bottom: 0; }
+/* Rows are links now that each guide has a page behind it. */
+.guide-row {
+  color: var(--ink);
+  text-decoration: none;
+  gap: 10px;
+}
+.guide-row:hover span:first-child,
+.guide-row:focus-visible span:first-child {
+  text-decoration: underline;
+}
+
+.recipe-card {
+  padding: 12px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+.empty-guides {
+  margin-top: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 14px;
+}
+
+/* Guide article */
+.guide-article { padding: 16px 0 8px; max-width: 68ch; }
+.guide-lede {
+  margin-top: 12px;
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+.guide-section { margin-top: 20px; }
+.guide-section h2 {
+  font: 10.5px var(--font-caps);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.guide-section p {
+  margin-top: 7px;
+  font-size: 14.5px;
+  line-height: 1.7;
+}
+
+/* Lots a guide was written for */
+.guide-lots { padding: 12px 14px 14px; margin-top: 8px; }
+.guide-lot-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+}
+.guide-lot {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 13.5px;
+}
+.guide-lot:hover, .guide-lot:focus-visible { text-decoration: underline; }
+.guide-lot img { width: 64px; height: 64px; object-fit: cover; }
 
 .order-row {
   display: flex;
