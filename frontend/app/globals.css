@@ -1000,6 +1000,10 @@ textarea.input {
 }
 
 .product-photo { width:100%; object-fit:cover; display:block; background:#f4f1ea; }
+/* A tall photo cropped into a wide slot defaults to its middle band. For the
+   wholesale shot that lands on blank sack, cutting off the scoop below and
+   the cups to the side. Biasing the crop downward keeps all three subjects. */
+.img-focus-lower { object-position: center 65%; }
 
 .lot-card { position: relative; }
 .pdp-photo { position: relative; }

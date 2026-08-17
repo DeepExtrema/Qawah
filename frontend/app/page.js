@@ -126,7 +126,14 @@ export default function Home() {
             </Link>
           </div>
           <div className="promo">
-            <ProductImage src={WHOLESALE_IMAGE} alt="" label="img" width={88} height={70} />
+            <ProductImage
+              src={WHOLESALE_IMAGE}
+              alt=""
+              label="img"
+              width={88}
+              height={70}
+              className="img-focus-lower"
+            />
             <div className="promo-copy">
               <div>Cafés, masjids, offices</div>
               <div className="cp">5 KG TIERS · NET-30 · TRAINING INCLUDED</div>
