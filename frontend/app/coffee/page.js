@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import ProductImage from "../../components/ProductImage";
 import AddToCartButton from "../../components/AddToCartButton";
+import NotifyButton from "../../components/NotifyButton";
 import WishlistButton from "../../components/WishlistButton";
 import LowStockBadge from "../../components/LowStockBadge";
 import { apiFetch } from "../../lib/api";
@@ -17,6 +18,21 @@ const CAFFS = [
   { id: "full", label: "Full" },
   { id: "low", label: "Low / none" },
 ];
+
+// Altitude scale for the range filter. A tick every 150 m gives the rail a
+// readable grain; every second one is labelled so the numbers land on the
+// round 300 m steps growers actually quote.
+const ALT_FLOOR = 1200;
+const ALT_CEIL = 2400;
+const ALT_STEP = 50;
+const ALT_TICKS = Array.from(
+  { length: (ALT_CEIL - ALT_FLOOR) / 150 + 1 },
+  (_, i) => ({ value: ALT_FLOOR + i * 150, major: i % 2 === 0 })
+);
+
+function altPct(value) {
+  return ((value - ALT_FLOOR) / (ALT_CEIL - ALT_FLOOR)) * 100;
+}
 
 function toggle(list, value) {
   return list.includes(value)
@@ -59,8 +75,8 @@ function CoffeeGrid() {
   const [origins, setOrigins] = useState([]);
   const [processes, setProcesses] = useState([]);
   const [caffeine, setCaffeine] = useState([]);
-  const [altMin, setAltMin] = useState(1200);
-  const [altMax, setAltMax] = useState(2400);
+  const [altMin, setAltMin] = useState(ALT_FLOOR);
+  const [altMax, setAltMax] = useState(ALT_CEIL);
   const [sort, setSort] = useState("altitude");
 
   function countFor(key, value) {
@@ -204,56 +220,85 @@ function CoffeeGrid() {
 
           <div className="filter-block">
             <div className="cp">ALTITUDE</div>
-            <div className="b alt-track">
-              <div className="alt-bar">
-                <span
-                  className="alt-knob"
-                  style={{ left: `${((altMin - 1200) / 1200) * 100}%` }}
+
+            {/* One rail, two thumbs. Both inputs sit on the same rail and are
+                pointer-transparent apart from their thumbs, so the thumb under
+                the cursor is the one that moves and each keeps native
+                arrow-key support. Rail, fill and ticks are drawn beneath. */}
+            <div className="alt-slider">
+              <div className="alt-rail">
+                <div
+                  className="alt-rail-fill"
+                  style={{
+                    left: `${altPct(altMin)}%`,
+                    right: `${100 - altPct(altMax)}%`,
+                  }}
                 />
-                <span
-                  className="alt-knob"
-                  style={{ left: `${((altMax - 1200) / 1200) * 100}%` }}
-                />
+                {ALT_TICKS.map((tick) => (
+                  <span
+                    key={tick.value}
+                    className={tick.major ? "alt-tick is-major" : "alt-tick"}
+                    style={{ left: `${altPct(tick.value)}%` }}
+                  />
+                ))}
               </div>
-            </div>
-            <div className="cp" style={{ marginTop: 5 }}>
-              {altMin.toLocaleString()} – {altMax.toLocaleString()} m
-            </div>
-            <div className="alt-field">
-              <label className="cp" htmlFor="alt-min">
-                Min altitude
+
+              <label className="sr-only" htmlFor="alt-min">
+                Minimum altitude
               </label>
+              {/* Once the low thumb passes the midpoint it rises above the high
+                  one, so a pair parked together at the top of the scale can
+                  still be pulled apart. */}
               <input
                 id="alt-min"
-                className="alt-range"
+                className="alt-thumb"
                 type="range"
-                min={1200}
-                max={2400}
-                step={50}
+                min={ALT_FLOOR}
+                max={ALT_CEIL}
+                step={ALT_STEP}
                 value={altMin}
                 aria-valuetext={`${altMin.toLocaleString()} metres`}
+                style={{ zIndex: altMin > (ALT_FLOOR + ALT_CEIL) / 2 ? 4 : 2 }}
                 onChange={(e) =>
-                  setAltMin(Math.min(Number(e.target.value), altMax))
+                  setAltMin(Math.min(Number(e.target.value), altMax - ALT_STEP))
                 }
               />
-            </div>
-            <div className="alt-field">
-              <label className="cp" htmlFor="alt-max">
-                Max altitude
+
+              <label className="sr-only" htmlFor="alt-max">
+                Maximum altitude
               </label>
               <input
                 id="alt-max"
-                className="alt-range"
+                className="alt-thumb"
                 type="range"
-                min={1200}
-                max={2400}
-                step={50}
+                min={ALT_FLOOR}
+                max={ALT_CEIL}
+                step={ALT_STEP}
                 value={altMax}
                 aria-valuetext={`${altMax.toLocaleString()} metres`}
+                style={{ zIndex: 3 }}
                 onChange={(e) =>
-                  setAltMax(Math.max(Number(e.target.value), altMin))
+                  setAltMax(Math.max(Number(e.target.value), altMin + ALT_STEP))
                 }
               />
+            </div>
+
+            {/* The rail carries the ticks; these are the numbers that let you
+                read a value off it without dragging. */}
+            <div className="alt-scale" aria-hidden="true">
+              {ALT_TICKS.filter((tick) => tick.major).map((tick) => (
+                <span
+                  key={tick.value}
+                  className="alt-scale-n"
+                  style={{ left: `${altPct(tick.value)}%` }}
+                >
+                  {tick.value}
+                </span>
+              ))}
+            </div>
+
+            <div className="cp alt-readout">
+              {altMin.toLocaleString()} – {altMax.toLocaleString()} m
             </div>
           </div>
 
@@ -344,9 +389,7 @@ function CoffeeGrid() {
                     {lot.sizeLabel ? ` / ${lot.sizeLabel}` : ""}
                   </span>
                   {lot.soldOut ? (
-                    <button type="button" className="bt bt-sm" disabled>
-                      Notify
-                    </button>
+                    <NotifyButton product={lot} />
                   ) : (
                     <AddToCartButton product={lot} />
                   )}

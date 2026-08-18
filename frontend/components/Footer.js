@@ -24,9 +24,13 @@ export default function Footer() {
         </div>
         <div className="footer-col">
           <span className="cp">LEARN</span>
+          {/* All three of these used to point at a bare /learn, so two of the
+              three went nowhere in particular and did nothing at all when the
+              reader was already on the page. The topic ids match TOPICS in
+              lib/guides.js. */}
           <Link href="/learn">Brew guides</Link>
-          <Link href="/learn">Ibrik &amp; qahwa</Link>
-          <Link href="/learn">Qishr</Link>
+          <Link href="/learn?topic=ibrik">Ibrik &amp; qahwa</Link>
+          <Link href="/learn?topic=qishr">Qishr</Link>
         </div>
         <div className="footer-col">
           <span className="cp">TRADE</span>

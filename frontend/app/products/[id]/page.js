@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import ProductImage from "../../../components/ProductImage";
 import WishlistButton from "../../../components/WishlistButton";
 import LowStockBadge from "../../../components/LowStockBadge";
+import NotifyButton from "../../../components/NotifyButton";
 import RecentlyViewed from "../../../components/RecentlyViewed";
 import { useCart } from "../../../context/CartContext";
 import { useAuth } from "../../../context/AuthContext";
@@ -391,15 +392,23 @@ export default function ProductPage() {
                 </div>
               </div>
 
-              <button
-                type="button"
-                className="bt bp"
-                style={{ width: "100%", marginTop: 12 }}
-                disabled={!canBuy}
-                onClick={add}
-              >
-                {lot.soldOut ? "Notify" : "Add to bag"}
-              </button>
+              {lot.soldOut ? (
+                <NotifyButton
+                  product={lot}
+                  variant="page"
+                  className="bt bp notify-wide"
+                />
+              ) : (
+                <button
+                  type="button"
+                  className="bt bp"
+                  style={{ width: "100%", marginTop: 12 }}
+                  disabled={!canBuy}
+                  onClick={add}
+                >
+                  Add to bag
+                </button>
+              )}
 
               <Link href="/subscribe" className="b sub-cta">
                 <div style={{ fontSize: 13.5 }}>

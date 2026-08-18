@@ -2,6 +2,7 @@ import { Caveat, Patrick_Hand } from "next/font/google";
 import { AuthProvider } from "../context/AuthContext";
 import { CartProvider } from "../context/CartContext";
 import { WishlistProvider } from "../context/WishlistContext";
+import { WaitlistProvider } from "../context/WaitlistContext";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import "./globals.css";
@@ -34,11 +35,13 @@ export default function RootLayout({ children }) {
       <body>
         <AuthProvider>
           <WishlistProvider>
-            <CartProvider>
-              <Header />
-              {children}
-              <Footer />
-            </CartProvider>
+            <WaitlistProvider>
+              <CartProvider>
+                <Header />
+                {children}
+                <Footer />
+              </CartProvider>
+            </WaitlistProvider>
           </WishlistProvider>
         </AuthProvider>
       </body>

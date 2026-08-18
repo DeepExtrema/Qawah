@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import ProductImage from "../../components/ProductImage";
 import { GUIDES, TOPICS, EQUIPMENT, topicCounts } from "../../lib/guides";
 import { RECIPE_CARD_IMAGE } from "../../lib/media";
@@ -10,9 +11,33 @@ import { RECIPE_CARD_IMAGE } from "../../lib/media";
 // a guide that no longer exists without the link breaking visibly.
 const FEATURED = "ibrik-three-rises";
 
-export default function LearnPage() {
-  const [topic, setTopic] = useState("all");
+function LearnIndex() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // The topic lives in the URL rather than in state so that a link can point
+  // at one. The footer links straight to /learn?topic=ibrik, and holding the
+  // selection in useState meant those links had nowhere to land: every topic
+  // resolved to the same bare /learn and the page never changed. Reading it
+  // back off the URL also means the filter survives a refresh and the back
+  // button steps through topics.
+  const requested = searchParams.get("topic");
+  // An unknown ?topic= falls back to All rather than filtering everything out,
+  // so a stale or mistyped link shows guides instead of an empty page.
+  const topic = TOPICS.some((t) => t.id === requested) ? requested : "all";
   const [equip, setEquip] = useState(null);
+
+  function selectTopic(next) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (next === "all") params.delete("topic");
+    else params.set("topic", next);
+    const query = params.toString();
+    // replace, not push: filter churn should not stack up entries the back
+    // button has to walk out of. scroll:false keeps the sidebar under the
+    // cursor instead of jumping to the top of the page on every click.
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }
 
   const counts = useMemo(() => topicCounts(), []);
   const featured = GUIDES.find((g) => g.slug === FEATURED);
@@ -24,8 +49,8 @@ export default function LearnPage() {
   });
 
   function clearFilters() {
-    setTopic("all");
     setEquip(null);
+    selectTopic("all");
   }
 
   return (
@@ -42,7 +67,7 @@ export default function LearnPage() {
                 type="button"
                 className={topic === "all" ? "is-on" : ""}
                 aria-pressed={topic === "all"}
-                onClick={() => setTopic("all")}
+                onClick={() => selectTopic("all")}
               >
                 All ({counts.all})
               </button>
@@ -52,7 +77,7 @@ export default function LearnPage() {
                   type="button"
                   className={topic === t.id ? "is-on" : ""}
                   aria-pressed={topic === t.id}
-                  onClick={() => setTopic(t.id)}
+                  onClick={() => selectTopic(t.id)}
                 >
                   {t.label} ({counts[t.id]})
                 </button>
@@ -140,5 +165,21 @@ export default function LearnPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function LearnPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="page">
+          <div className="shell empty">
+            <p className="cp">LOADING GUIDES</p>
+          </div>
+        </main>
+      }
+    >
+      <LearnIndex />
+    </Suspense>
   );
 }

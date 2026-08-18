@@ -33,3 +33,4 @@ _*.py
 extract-*.js
 wireframe-*.html
 wireframe-*.txt
+.gstack/
