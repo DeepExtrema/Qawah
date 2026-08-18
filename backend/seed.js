@@ -2,7 +2,6 @@ require("dotenv").config();
 
 const fs = require("fs");
 const path = require("path");
-const crypto = require("crypto");
 const mongoose = require("mongoose");
 // bcryptjs, not bcrypt: the native module compiles to a platform-specific
 // .node binary that esbuild cannot bundle into a Netlify Function, so the
@@ -728,9 +727,20 @@ const products = [
   },
 ];
 
-function randomPassword() {
-  return crypto.randomBytes(12).toString("base64url");
-}
+/*
+ * Demo account passwords.
+ *
+ * Fixed rather than random so the accounts are predictable for a marker or a
+ * teammate: re-seeding does not invalidate credentials anyone already has.
+ *
+ * These defaults are public knowledge, since they live in this repository. Any
+ * deployment that matters should override them, which is what the environment
+ * variables are for:
+ *
+ *   SEED_ADMIN_PASSWORD="..." SEED_CUSTOMER_PASSWORD="..." npm run seed
+ */
+const DEMO_CUSTOMER_PASSWORD = process.env.SEED_CUSTOMER_PASSWORD || "customerPassword";
+const DEMO_ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD || "adminPassword";
 
 async function upsertUser({ name, email, password, role }) {
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -758,8 +768,8 @@ async function seedDatabase() {
     await upsertProductsBySlug(Product, products);
     await seedTier3Extras();
 
-    const customerPassword = randomPassword();
-    const adminPassword = randomPassword();
+    const customerPassword = DEMO_CUSTOMER_PASSWORD;
+    const adminPassword = DEMO_ADMIN_PASSWORD;
 
     await upsertUser({
       name: "Yusuf",
@@ -795,6 +805,12 @@ async function seedDatabase() {
     fs.writeFileSync(credPath, credBody, { encoding: "utf8", mode: 0o600 });
 
     console.log(`Upserted ${products.length} products plus categories and QAHWA10`);
+    console.log("");
+    console.log("  Demo sign-in");
+    console.log(`    admin     admin@qahwasupply.local  /  ${adminPassword}`);
+    console.log(`    customer  yusuf@qahwasupply.local  /  ${customerPassword}`);
+    console.log("    discount  QAHWA10  (10% off, orders over $20)");
+    console.log("");
     await mongoose.connection.close();
   } catch (error) {
     console.error("Seed error:", error.message);

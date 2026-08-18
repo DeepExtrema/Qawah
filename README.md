@@ -63,8 +63,25 @@ If your API runs elsewhere, `cp frontend/.env.example frontend/.env.local` and e
 cd backend && npm install && npm run seed && npm start
 ```
 
-`npm run seed` loads the product catalogue and creates one customer and one admin account.
-It prints those credentials to `backend/.seed-credentials.txt`, which is git-ignored.
+`npm run seed` loads the product catalogue, creates the two demo accounts below, and adds the
+`QAHWA10` discount code.
+
+### Demo sign-in
+
+| Role | Email | Password |
+| --- | --- | --- |
+| Administrator | `admin@qahwasupply.local` | `adminPassword` |
+| Customer | `yusuf@qahwasupply.local` | `customerPassword` |
+
+Also seeded: **`QAHWA10`**, 10% off any order over $20.
+
+These are fixed rather than random so they stay valid across re-seeds, and they are written to
+`backend/.seed-credentials.txt` as well. They are demonstration credentials published in a public
+repository, so override them for any deployment that holds real data:
+
+```bash
+SEED_ADMIN_PASSWORD="..." SEED_CUSTOMER_PASSWORD="..." npm run seed
+```
 
 The API listens on <http://localhost:5001>. Confirm it with <http://localhost:5001/api/health>.
 
@@ -78,9 +95,9 @@ cd frontend && npm install && npm run dev
 
 The store opens at <http://localhost:3000>.
 
-> **Admin access:** log in with the admin account from `backend/.seed-credentials.txt`, then use
-> the admin bar. To promote another user, change their `role` to `admin` in MongoDB and have them
-> log out and back in so a fresh JWT is issued with the new role.
+> **Admin access:** sign in as `admin@qahwasupply.local`, then use the admin bar. To promote
+> another user, change their `role` to `admin` in MongoDB and have them log out and back in so a
+> fresh JWT is issued carrying the new role.
 
 ---
 
