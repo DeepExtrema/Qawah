@@ -7,19 +7,27 @@ import { useCart } from "../../context/CartContext";
 import { apiError, apiFetch } from "../../lib/api";
 import { money } from "../../lib/lots";
 
-const NAV = [
-  "Dashboard",
-  "Orders",
-  "Addresses",
-  "Invoices · Net-30",
-  "Team access",
-  "Spec sheets",
-];
+/*
+ * The account area serves two different relationships with the shop.
+ *
+ * A retail customer has orders and addresses. Net-30 invoicing, team seats and
+ * spec sheets belong to a wholesale account and mean nothing to them, so
+ * showing those tabs to everyone left a customer clicking into panels that
+ * only explained why they were empty.
+ *
+ * This is presentation only. It is not the security boundary: every admin
+ * endpoint is protected server-side by protect + adminOnly in
+ * backend/routes/adminRoutes.js, and hiding a link changes nothing about that.
+ */
+const CUSTOMER_NAV = ["Dashboard", "Orders", "Addresses"];
+const TRADE_NAV = ["Invoices · Net-30", "Team access", "Spec sheets"];
 
 export default function AccountPage() {
   const { user, loaded, logout } = useAuth();
   const { addToCart } = useCart();
   const [tab, setTab] = useState("Dashboard");
+  const isAdmin = user?.role === "admin";
+  const nav = isAdmin ? [...CUSTOMER_NAV, ...TRADE_NAV] : CUSTOMER_NAV;
   const [orders, setOrders] = useState([]);
   const [addresses, setAddresses] = useState([]);
   const [note, setNote] = useState("");
@@ -78,7 +86,7 @@ export default function AccountPage() {
         <div className="shell empty">
           <h1>Account</h1>
           <p style={{ marginTop: 8 }}>Log in to see orders and addresses.</p>
-          <Link href="/login" className="bt bp" style={{ marginTop: 16 }}>Trade login</Link>
+          <Link href="/login" className="bt bp" style={{ marginTop: 16 }}>Sign in</Link>
         </div>
       </main>
     );
@@ -88,7 +96,10 @@ export default function AccountPage() {
     <main className="page">
       <div className="shell">
         <div className="crumbs">
-          <span className="cp">{String(user.name || "TRADE").toUpperCase()} · ACCOUNT</span>
+          <span className="cp">
+            {String(user.name || "ACCOUNT").toUpperCase()} ·{" "}
+            {isAdmin ? "ADMINISTRATOR" : "CUSTOMER"}
+          </span>
           <Link href="/profile" className="cp" style={{ marginLeft: "auto" }}>EDIT PROFILE</Link>
           <button type="button" className="cp" style={{ background: "none", border: 0 }} onClick={logout}>
             LOG OUT
@@ -97,7 +108,7 @@ export default function AccountPage() {
         <div className="side-layout">
           <aside className="side">
             <div className="side-nav" style={{ marginTop: 0 }}>
-              {NAV.map((item) => (
+              {nav.map((item) => (
                 <button
                   key={item}
                   type="button"
@@ -107,10 +118,18 @@ export default function AccountPage() {
                   {item === "Addresses" ? `Addresses (${addresses.length})` : item}
                 </button>
               ))}
-              {user.role === "admin" && (
-                <Link href="/admin">Trade desk</Link>
-              )}
+              <Link href="/profile">Profile</Link>
+              <Link href="/wishlist">Saved lots</Link>
             </div>
+
+            {isAdmin && (
+              <div className="side-nav admin-only">
+                <span className="cp">ADMINISTRATOR</span>
+                <Link href="/admin">Trade desk</Link>
+                <Link href="/admin/inventory">Inventory</Link>
+                <Link href="/admin/audit">Audit log</Link>
+              </div>
+            )}
           </aside>
 
           <section className="side-main">
@@ -221,13 +240,13 @@ export default function AccountPage() {
               </>
             )}
 
-            {tab === "Invoices · Net-30" && (
+            {isAdmin && tab === "Invoices · Net-30" && (
               <p style={{ fontSize: 13.5 }}>Invoices appear after paid trade orders.</p>
             )}
-            {tab === "Team access" && (
+            {isAdmin && tab === "Team access" && (
               <p style={{ fontSize: 13.5 }}>Team seats stay on the trade desk.</p>
             )}
-            {tab === "Spec sheets" && (
+            {isAdmin && tab === "Spec sheets" && (
               <p style={{ fontSize: 13.5 }}>Download PDFs from each lot page.</p>
             )}
           </section>

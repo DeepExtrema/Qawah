@@ -889,6 +889,14 @@ textarea.input {
   color: var(--acc);
 }
 .side-main { padding: 14px 0 28px 16px; }
+/* Administrator links sit in their own group, separated from the account tabs,
+   so the two kinds of access are visibly distinct rather than one long list. */
+.admin-only {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1.4px solid var(--hair);
+}
+.admin-only .cp { margin-bottom: 2px; color: var(--acc); }
 
 .radio-dot {
   display: inline-block;
