@@ -647,7 +647,7 @@ the function at all.
 | Author | Area of ownership |
 | --- | --- |
 | **Taimoor Awan** | Database |
-| **Jeremy Liang** | Backend |
+| **Jeremy Liang** | Backend/Database |
 | **Madiha Sultan** | Frontend |
 | **Faraibe** | Frontend |
 | **Fujie** | Frontend |
