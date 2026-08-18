@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
@@ -8,10 +8,19 @@ import { apiError, apiFetch } from "../../lib/api";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, user, loaded } = useAuth();
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+
+
+  // Somebody already signed in has no use for this form. Sent to their account
+  // instead, which is where both flows end up on success anyway.
+  useEffect(() => {
+    if (loaded && user) router.replace("/account");
+  }, [loaded, user, router]);
+
+  if (loaded && user) return null;
 
   function handleChange(event) {
     setForm({ ...form, [event.target.name]: event.target.value });

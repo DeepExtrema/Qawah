@@ -89,7 +89,8 @@ export default function AccountPage() {
       <div className="shell">
         <div className="crumbs">
           <span className="cp">{String(user.name || "TRADE").toUpperCase()} · ACCOUNT</span>
-          <button type="button" className="cp" style={{ marginLeft: "auto", background: "none", border: 0 }} onClick={logout}>
+          <Link href="/profile" className="cp" style={{ marginLeft: "auto" }}>EDIT PROFILE</Link>
+          <button type="button" className="cp" style={{ background: "none", border: 0 }} onClick={logout}>
             LOG OUT
           </button>
         </div>

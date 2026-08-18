@@ -1,6 +1,11 @@
+"use client";
+
 import Link from "next/link";
+import { useAuth } from "../context/AuthContext";
 
 export default function Footer() {
+  const { user, loaded } = useAuth();
+
   return (
     <footer className="site-footer">
       <div className="shell footer-grid">
@@ -26,9 +31,22 @@ export default function Footer() {
         <div className="footer-col">
           <span className="cp">TRADE</span>
           <Link href="/wholesale">Wholesale</Link>
-          <Link href="/login">Trade login</Link>
-          <Link href="/account">Account</Link>
-          <Link href="/register">Open an account</Link>
+          {/* Offering "Trade login" and "Open an account" to somebody who is
+              already signed in sent them to a sign-up form they did not need.
+              Until the session is known, show neither rather than guessing. */}
+          {loaded && user ? (
+            <>
+              <Link href="/account">Account</Link>
+              <Link href="/profile">Profile</Link>
+              <Link href="/orders">Orders</Link>
+            </>
+          ) : null}
+          {loaded && !user ? (
+            <>
+              <Link href="/login">Trade login</Link>
+              <Link href="/register">Open an account</Link>
+            </>
+          ) : null}
         </div>
       </div>
     </footer>

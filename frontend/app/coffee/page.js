@@ -219,36 +219,42 @@ function CoffeeGrid() {
             <div className="cp" style={{ marginTop: 5 }}>
               {altMin.toLocaleString()} – {altMax.toLocaleString()} m
             </div>
-            <label className="cp" htmlFor="alt-min" style={{ display: "block", marginTop: 8 }}>
-              Min altitude
-            </label>
-            <input
-              id="alt-min"
-              className="select"
-              type="range"
-              min={1200}
-              max={2400}
-              step={50}
-              value={altMin}
-              onChange={(e) =>
-                setAltMin(Math.min(Number(e.target.value), altMax))
-              }
-            />
-            <label className="cp" htmlFor="alt-max" style={{ display: "block", marginTop: 6 }}>
-              Max altitude
-            </label>
-            <input
-              id="alt-max"
-              className="select"
-              type="range"
-              min={1200}
-              max={2400}
-              step={50}
-              value={altMax}
-              onChange={(e) =>
-                setAltMax(Math.max(Number(e.target.value), altMin))
-              }
-            />
+            <div className="alt-field">
+              <label className="cp" htmlFor="alt-min">
+                Min altitude
+              </label>
+              <input
+                id="alt-min"
+                className="alt-range"
+                type="range"
+                min={1200}
+                max={2400}
+                step={50}
+                value={altMin}
+                aria-valuetext={`${altMin.toLocaleString()} metres`}
+                onChange={(e) =>
+                  setAltMin(Math.min(Number(e.target.value), altMax))
+                }
+              />
+            </div>
+            <div className="alt-field">
+              <label className="cp" htmlFor="alt-max">
+                Max altitude
+              </label>
+              <input
+                id="alt-max"
+                className="alt-range"
+                type="range"
+                min={1200}
+                max={2400}
+                step={50}
+                value={altMax}
+                aria-valuetext={`${altMax.toLocaleString()} metres`}
+                onChange={(e) =>
+                  setAltMax(Math.max(Number(e.target.value), altMin))
+                }
+              />
+            </div>
           </div>
 
           <div className="filter-block">

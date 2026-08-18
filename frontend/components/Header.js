@@ -20,8 +20,15 @@ export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
   const { cart, subtotal, count } = useCart();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [q, setQ] = useState("");
+
+  function handleSignOut() {
+    logout();
+    // Account, orders and admin pages all require a session, so staying put
+    // would leave the visitor on a page that immediately tells them to log in.
+    router.push("/");
+  }
 
   function onSearch(event) {
     event.preventDefault();
@@ -39,13 +46,23 @@ export default function Header() {
           ROASTED TUESDAYS · SHIPS WEDNESDAY · FREE OVER $40
         </span>
         {user ? (
-          <Link href="/account" className="announce-login">
-            {user.name ? String(user.name).toUpperCase() : "TRADE ACCOUNT"}
-          </Link>
+          <span className="announce-account">
+            <Link href="/account" className="announce-login">
+              {user.name ? String(user.name).toUpperCase() : "TRADE ACCOUNT"}
+            </Link>
+            <button type="button" className="announce-login link-btn" onClick={handleSignOut}>
+              SIGN OUT
+            </button>
+          </span>
         ) : (
-          <Link href="/login" className="announce-login">
-            TRADE LOGIN
-          </Link>
+          <span className="announce-account">
+            <Link href="/login" className="announce-login">
+              TRADE LOGIN
+            </Link>
+            <Link href="/register" className="announce-login">
+              REGISTER
+            </Link>
+          </span>
         )}
       </div>
 
@@ -87,6 +104,16 @@ export default function Header() {
           className={pathname === "/wishlist" ? "nv-link is-active" : "nv-link"}
         >
           Saved
+        </Link>
+        <Link
+          href={user ? "/account" : "/login"}
+          className={
+            pathname === "/account" || pathname === "/profile"
+              ? "nv-link is-active"
+              : "nv-link"
+          }
+        >
+          {user ? "Account" : "Sign in"}
         </Link>
         {user?.role === "admin" && (
           <Link
