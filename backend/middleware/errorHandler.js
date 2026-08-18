@@ -22,10 +22,13 @@ function errorHandler(err, req, res, next) {
     });
   }
 
-  res.status(status).json({
-    error: { message, code },
-    message,
-  });
+  // Field-keyed detail rides alongside the summary message so a form can mark
+  // the offending inputs. Only ever set for 4xx, since a 500's message is
+  // deliberately generic.
+  const error = { message, code };
+  if (status < 500 && err.fields) error.fields = err.fields;
+
+  res.status(status).json({ error, message });
 }
 
 module.exports = errorHandler;

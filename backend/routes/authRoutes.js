@@ -7,6 +7,14 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const protect = require("../middleware/authMiddleware");
+const asyncHandler = require("../utils/asyncHandler");
+const AppError = require("../utils/AppError");
+const {
+  emailIssue,
+  nameIssue,
+  passwordIssue,
+  rejectFields,
+} = require("../utils/validate");
 
 const router = express.Router();
 
@@ -32,37 +40,39 @@ function publicUser(user) {
   };
 }
 
-router.post("/register", async (req, res) => {
-  try {
-    const { name, email, password } = req.body;
+router.post(
+  "/register",
+  asyncHandler(async (req, res) => {
+    const { name, email, password } = req.body || {};
 
-    if (!name || !email || !password) {
-      return res.status(400).json({
-        message: "Name, email, and password are required.",
-      });
-    }
+    const fields = {};
+    const nameProblem = nameIssue(name, "name this account should be under");
+    if (nameProblem) fields.name = nameProblem;
 
-    if (password.length < 6) {
-      return res.status(400).json({
-        message: "Password must be at least 6 characters.",
-      });
-    }
+    const emailProblem = emailIssue(email);
+    if (emailProblem) fields.email = emailProblem;
 
-    const existingUser = await User.findOne({
-      email: email.toLowerCase(),
-    });
+    // Name and email go in as context so "taimoor2024" is rejected for an
+    // account belonging to Taimoor, which is the guess an attacker makes first.
+    const passwordProblem = passwordIssue(password, { email, name });
+    if (passwordProblem) fields.password = passwordProblem;
 
+    rejectFields(fields);
+
+    const cleanEmail = String(email).trim().toLowerCase();
+    const cleanName = String(name).trim();
+
+    const existingUser = await User.findOne({ email: cleanEmail });
     if (existingUser) {
-      return res.status(400).json({
-        message: "An account with this email already exists.",
-      });
+      const taken = "An account with this email already exists.";
+      throw new AppError(taken, 409, "EMAIL_TAKEN", { email: taken });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
-      name,
-      email: email.toLowerCase(),
+      name: cleanName,
+      email: cleanEmail,
       password: hashedPassword,
     });
 
@@ -73,45 +83,34 @@ router.post("/register", async (req, res) => {
       token,
       user: publicUser(user),
     });
-  } catch (error) {
-    console.error(error);
+  })
+);
 
-    res.status(500).json({
-      message: "Unable to create account.",
-    });
-  }
-});
+router.post(
+  "/login",
+  asyncHandler(async (req, res) => {
+    const { email, password } = req.body || {};
 
-router.post("/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
+    // Presence only. Running the full format rules here would reject an old
+    // account whose address predates them, and lock somebody out of their own
+    // orders over a rule that only ever applied at signup.
+    const fields = {};
+    if (!String(email || "").trim()) fields.email = "Please add your email address.";
+    if (!String(password || "")) fields.password = "Please add your password.";
+    rejectFields(fields);
 
-    if (!email || !password) {
-      return res.status(400).json({
-        message: "Email and password are required.",
-      });
-    }
+    const user = await User.findOne({ email: String(email).trim().toLowerCase() });
 
-    const user = await User.findOne({
-      email: email.toLowerCase(),
-    });
+    // Deliberately identical for an unknown address and a wrong password, and
+    // deliberately not keyed to a field. Saying which half was wrong turns this
+    // form into a way to test whether an address has an account here.
+    const invalid = () =>
+      new AppError("Invalid email or password.", 401, "INVALID_CREDENTIALS");
 
-    if (!user) {
-      return res.status(401).json({
-        message: "Invalid email or password.",
-      });
-    }
+    if (!user) throw invalid();
 
-    const passwordMatches = await bcrypt.compare(
-      password,
-      user.password
-    );
-
-    if (!passwordMatches) {
-      return res.status(401).json({
-        message: "Invalid email or password.",
-      });
-    }
+    const passwordMatches = await bcrypt.compare(password, user.password);
+    if (!passwordMatches) throw invalid();
 
     const token = signToken(user);
 
@@ -120,85 +119,58 @@ router.post("/login", async (req, res) => {
       token,
       user: publicUser(user),
     });
-  } catch (error) {
-    console.error(error);
+  })
+);
 
-    res.status(500).json({
-      message: "Unable to log in.",
-    });
-  }
-});
-
-router.get("/me", protect, async (req, res) => {
-  try {
+router.get(
+  "/me",
+  protect,
+  asyncHandler(async (req, res) => {
     const user = await User.findById(req.user.userId).select("-password");
-
-    if (!user) {
-      return res.status(404).json({
-        message: "User not found.",
-      });
-    }
-
+    if (!user) throw new AppError("User not found.", 404, "NOT_FOUND");
     res.status(200).json(user);
-  } catch (error) {
-    console.error(error);
+  })
+);
 
-    res.status(500).json({
-      message: "Unable to retrieve profile.",
-    });
-  }
-});
+router.put(
+  "/me",
+  protect,
+  asyncHandler(async (req, res) => {
+    const { name, email } = req.body || {};
 
-router.put("/me", protect, async (req, res) => {
-  try {
-    const { name, email } = req.body;
+    const fields = {};
+    const nameProblem = nameIssue(name, "name on this account");
+    if (nameProblem) fields.name = nameProblem;
 
-    if (!name || !email) {
-      return res.status(400).json({
-        message: "Name and email are required.",
-      });
-    }
+    const emailProblem = emailIssue(email);
+    if (emailProblem) fields.email = emailProblem;
+
+    rejectFields(fields);
+
+    const cleanEmail = String(email).trim().toLowerCase();
 
     const existingUser = await User.findOne({
-      email: email.toLowerCase(),
+      email: cleanEmail,
       _id: { $ne: req.user.userId },
     });
-
     if (existingUser) {
-      return res.status(400).json({
-        message: "That email is already being used.",
-      });
+      const taken = "That email is already being used by another account.";
+      throw new AppError(taken, 409, "EMAIL_TAKEN", { email: taken });
     }
 
     const user = await User.findByIdAndUpdate(
       req.user.userId,
-      {
-        name,
-        email: email.toLowerCase(),
-      },
-      {
-        new: true,
-        runValidators: true,
-      }
+      { name: String(name).trim(), email: cleanEmail },
+      { new: true, runValidators: true }
     ).select("-password");
 
-    if (!user) {
-      return res.status(404).json({
-        message: "User not found.",
-      });
-    }
+    if (!user) throw new AppError("User not found.", 404, "NOT_FOUND");
 
     res.status(200).json({
       message: "Profile updated successfully.",
       user,
     });
-  } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      message: "Unable to update profile.",
-    });
-  }
-});
+  })
+);
 
 module.exports = router;

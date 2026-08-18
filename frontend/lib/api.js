@@ -61,3 +61,25 @@ export async function apiFetch(path, options = {}) {
   const data = await response.json().catch(() => ({}));
   return { response, data };
 }
+
+/*
+ * Field-keyed errors from the API, for forms that pin each problem to its own
+ * input rather than showing one sentence for the whole form.
+ *
+ * Reads error.fields (the shape errorHandler emits) and tolerates a bare
+ * `fields` for any route that has not been converted yet. Non-string values are
+ * dropped so a malformed payload cannot render [object Object] under an input.
+ */
+export function apiFieldErrors(data) {
+  const fields = data?.error?.fields || data?.fields;
+  if (!fields || typeof fields !== "object") return {};
+  const out = {};
+  Object.keys(fields).forEach((key) => {
+    if (typeof fields[key] === "string" && fields[key]) out[key] = fields[key];
+  });
+  return out;
+}
+
+export function apiErrorCode(data) {
+  return data?.error?.code || "";
+}

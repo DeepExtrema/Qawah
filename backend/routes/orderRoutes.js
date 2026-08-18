@@ -7,7 +7,15 @@ const asyncHandler = require("../utils/asyncHandler");
 const AppError = require("../utils/AppError");
 const OrderService = require("../services/OrderService");
 const { writeAudit } = require("../middleware/audit");
-const { requireString, requireEmail, requireObjectId } = require("../utils/validate");
+const {
+  requireObjectId,
+  emailIssue,
+  nameIssue,
+  postalIssue,
+  normalizeCountry,
+  rejectFields,
+  POSTAL_RULES,
+} = require("../utils/validate");
 
 const router = express.Router();
 
@@ -17,18 +25,56 @@ router.post(
   "/",
   optionalAuth,
   asyncHandler(async (req, res) => {
-    const customerName = requireString(req.body.customerName, "Name", 120);
-    const customerEmail = requireEmail(req.body.customerEmail || req.body.guestEmail);
     const address = req.body.address || req.body.shippingAddress;
-    const formatted = OrderService.formatAddress(address);
-    if (!formatted) {
-      throw new AppError("Please complete the shipping address.", 400, "VALIDATION");
+    const shippingMethod = req.body.shippingMethod || "std";
+    const pickup = String(shippingMethod).toLowerCase() === "pickup";
+
+    // Every problem at once, keyed by the field name the checkout form uses, so
+    // a rejected order marks the offending inputs instead of returning a single
+    // sentence about an address the customer then has to re-read line by line.
+    const fields = {};
+
+    const nameProblem = nameIssue(req.body.customerName, "name this order is for");
+    if (nameProblem) fields.customerName = nameProblem;
+
+    const emailProblem = emailIssue(req.body.customerEmail || req.body.guestEmail);
+    if (emailProblem) fields.customerEmail = emailProblem;
+
+    if (pickup) {
+      // Collected in Brooklyn, so there is nothing to validate.
+    } else if (typeof address === "string") {
+      // Legacy callers pass a pre-joined string. Nothing structured to check.
+      if (!address.trim()) {
+        fields.address1 = "Please add the street address, including the number.";
+      }
+    } else {
+      const shipTo = address || {};
+      const country = normalizeCountry(shipTo.country);
+      const rule = POSTAL_RULES[country] || {};
+
+      if (!country) {
+        fields.country = "Please choose the country we are shipping to.";
+      }
+      if (!String(shipTo.line1 || "").trim()) {
+        fields.address1 = "Please add the street address, including the number.";
+      }
+      if (!String(shipTo.city || "").trim()) {
+        fields.city = "Please add the town or city.";
+      }
+      if (rule.region && !String(shipTo.region || "").trim()) {
+        fields.region = `We need the ${rule.region.toLowerCase()} for this delivery.`;
+      }
+      const postalProblem = postalIssue(shipTo.postal, country);
+      if (postalProblem) fields.zip = postalProblem;
     }
 
+    rejectFields(fields);
+
+    const customerName = String(req.body.customerName).trim();
+    const customerEmail = String(req.body.customerEmail || req.body.guestEmail)
+      .trim()
+      .toLowerCase();
     const isGuest = !req.user?.userId;
-    if (isGuest && !customerEmail) {
-      throw new AppError("Guest checkout needs an email and address.", 400, "GUEST_REQUIRED");
-    }
 
     const { order, confirmationToken } = await OrderService.createOrder({
       userId: req.user?.userId || null,
@@ -36,7 +82,7 @@ router.post(
       customerEmail,
       address,
       items: req.body.items,
-      shippingMethod: req.body.shippingMethod || "std",
+      shippingMethod,
       discountCode: req.body.discountCode || req.body.code,
       isGuest,
     });
